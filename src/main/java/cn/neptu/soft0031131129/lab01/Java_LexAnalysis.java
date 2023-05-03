@@ -1,0 +1,269 @@
+package cn.neptu.soft0031131129.lab01;
+
+import java.io.*;
+import java.util.*;
+
+public class Java_LexAnalysis {
+    private static StringBuffer prog = new StringBuffer();
+
+    private static final String SYMBOL_FILE_PATH = "c_key.txt";
+
+    private static final Map<String, Integer> SYMBOL_INDEX_MAP = new HashMap<>();
+
+    private static final String SYMBOL_COMMENT = "_comment";
+
+    private static final String SYMBOL_CONSTANT = "_const";
+
+    private static final String SYMBOL_IDENTIFIER = "_id";
+
+    private static class Token {
+        private String symbol;
+        private String value;
+
+        public Token(String symbol, String value) {
+            this.symbol = symbol;
+            this.value = value;
+        }
+
+        public String toString() {
+            return String.format("(%s, %s)", symbol, value);
+        }
+    }
+
+    private static void readSymbolIndex() {
+        File file = new File(SYMBOL_FILE_PATH);
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] split = line.split(" ");
+                SYMBOL_INDEX_MAP.put(split[0], Integer.parseInt(split[split.length - 1]));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        SYMBOL_INDEX_MAP.put(SYMBOL_COMMENT, 79);
+        SYMBOL_INDEX_MAP.put(SYMBOL_CONSTANT, 80);
+        SYMBOL_INDEX_MAP.put(SYMBOL_IDENTIFIER, 81);
+    }
+
+    /**
+     * this method is to read the standard input
+     */
+    private static void readProg() {
+        Scanner sc = new Scanner(System.in);
+        while (sc.hasNextLine()) {
+            prog.append(sc.nextLine());
+        }
+    }
+
+
+    private static class Analyser {
+
+        private StringBuffer prog;
+        private int i;
+
+        public Analyser(StringBuffer prog) {
+            this.prog = prog;
+            this.i = 0;
+        }
+
+        private Token analysisComment() {
+            int j = i + 1;
+            if (prog.charAt(j) == '/') {
+                j++;
+                while (prog.charAt(j) != '\n') {
+                    j++;
+                }
+            } else if (prog.charAt(j) == '*') {
+                j++;
+                while (prog.charAt(j) != '*' || prog.charAt(j + 1) != '/') {
+                    j++;
+                }
+                j += 2;
+            } else {
+                // not a comment
+                return null;
+            }
+
+            Token t = new Token(SYMBOL_COMMENT, prog.substring(i, j));
+            i = j;
+            return t;
+        }
+
+        private Token analysisIdentifier() {
+            StringBuilder sb = new StringBuilder();
+            while (Character.isLetterOrDigit(prog.charAt(i))) {
+                sb.append(prog.charAt(i));
+                i++;
+            }
+            String s = sb.toString();
+            return new Token(SYMBOL_INDEX_MAP.containsKey(s) ? s : SYMBOL_IDENTIFIER, s);
+        }
+
+        private Token analysisNumericalConstant() {
+            int j = i;
+            while (Character.isDigit(prog.charAt(j))) {
+                j++;
+            }
+            if (prog.charAt(j) != '.') {
+                i = j;
+                return new Token(SYMBOL_CONSTANT, prog.substring(i, j));
+            }
+            j++;
+            while (Character.isDigit(prog.charAt(j))) {
+                j++;
+            }
+            i = j;
+            return new Token(SYMBOL_CONSTANT, prog.substring(i, j));
+        }
+
+        private Token analysisString() {
+            int j = i + 1;
+            StringBuilder sb = new StringBuilder();
+            i++;
+            while (prog.charAt(i) != '"') {
+                sb.append(prog.charAt(i));
+                i++;
+            }
+            i++;
+            return new Token(SYMBOL_CONSTANT, sb.toString());
+        }
+
+        public List<Token> analysis() {
+            List<Token> tokens = new ArrayList<>();
+            int length = prog.length();
+            while (i < length) {
+                char c = prog.charAt(i);
+                // skip whitespace
+                if (Character.isWhitespace(c)) {
+                    i++;
+                    continue;
+                }
+                // comment
+                if (c == '/') {
+                    Token t = analysisComment();
+                    if (t != null) {
+                        tokens.add(t);
+                        continue;
+                    }
+                }
+                // keyword or identifier
+                if (Character.isLetter(c)) {
+                    tokens.add(analysisIdentifier());
+                    continue;
+                }
+                // numerical constant
+                if (c == '.' || Character.isDigit(c)) {
+                    Token t = analysisNumericalConstant();
+                    if (t != null) {
+                        tokens.add(t);
+                        continue;
+                    }
+                }
+                // binary operator
+                if (c == '+' || c == '-' || c == '*' || c == '/' || c == '%'
+                        || c == '<' || c == '>' || c == '&' || c == '|' || c == '^'
+                        || c == '=') {
+                    i++;
+                    if (c == '-' && prog.charAt(i) == '>') {
+                        tokens.add(new Token("->", "->"));
+                        i++;
+                        continue;
+                    }
+                    if (prog.charAt(i) == '=') {
+                        tokens.add(new Token(c + "=", c + "="));
+                        i++;
+                        continue;
+                    }
+                    if (c == '+' || c == '-' || c == '&' || c == '|' || c == '>' || c == '<') {
+                        if (prog.charAt(i) == c) {
+                            if (c == '<' || c == '>' && prog.charAt(i + 1) == '=') {
+                                // >>=, <<=
+                                String s = c + String.valueOf(c) + "=";
+                                tokens.add(new Token(s, s));
+                                i += 2;
+                                continue;
+                            }
+                            tokens.add(new Token(c + String.valueOf(c), c + String.valueOf(c)));
+                            i++;
+                            continue;
+                        }
+                    }
+                    tokens.add(new Token(String.valueOf(c), String.valueOf(c)));
+                    continue;
+                }
+                // unary operator
+                if (c == '!' || c == '~') {
+                    tokens.add(new Token(String.valueOf(c), String.valueOf(c)));
+                    i++;
+                    continue;
+                }
+                // delimiter
+                if (c == '(' || c == ')'
+                        || c == '[' || c == ']'
+                        || c == '{' || c == '}'
+                        || c == ',' || c == '.' || c == ';' || c == '?') {
+                    tokens.add(new Token(String.valueOf(c), String.valueOf(c)));
+                    i++;
+                    continue;
+                }
+                // string constant
+                if (c == '"') {
+                    tokens.add(new Token("\"", "\""));
+                    i++;
+                    tokens.add(analysisString());
+                    i++;
+                    tokens.add(new Token("\"", "\""));
+                    continue;
+                }
+                // character constant
+                if (c == '\'') {
+                    tokens.add(new Token("'", String.valueOf(c)));
+                    i++;
+                    if (prog.charAt(i) == '\\') {
+                        tokens.add(new Token(SYMBOL_CONSTANT, String.valueOf(prog.charAt(i + 1))));
+                        i += 2;
+                    } else {
+                        tokens.add(new Token(SYMBOL_CONSTANT, String.valueOf(prog.charAt(i))));
+                        i += 1;
+                    }
+                    i++;
+                    tokens.add(new Token("'", String.valueOf(prog.charAt(i))));
+                }
+                throw new RuntimeException("unknown symbol: " + c);
+            }
+
+            return tokens;
+        }
+
+    }
+
+
+    // add your method here!!
+
+
+    /**
+     * you should add some code in this method to achieve this lab
+     */
+    private static void analysis() {
+        readSymbolIndex();
+        readProg();
+        Analyser analyser = new Analyser(prog);
+        List<Token> tokens = analyser.analysis();
+
+        int i = 1;
+        for (Token token : tokens) {
+            System.out.printf("%d: <%s, %d>", i, token.value, SYMBOL_INDEX_MAP.get(token.symbol));
+            i++;
+        }
+    }
+
+    /**
+     * this is the main method
+     *
+     * @param args
+     */
+    public static void main(String[] args) {
+        analysis();
+    }
+}
