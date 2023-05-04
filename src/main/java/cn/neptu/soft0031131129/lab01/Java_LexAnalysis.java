@@ -1,6 +1,7 @@
 package cn.neptu.soft0031131129.lab01;
 
 import java.io.*;
+import java.nio.Buffer;
 import java.util.*;
 
 public class Java_LexAnalysis {
@@ -26,13 +27,14 @@ public class Java_LexAnalysis {
         }
 
         public String toString() {
-            return String.format("(%s, %s)", symbol, value);
+            return String.format("<%s, %s>", symbol, value);
         }
     }
 
     private static void readSymbolIndex() {
-        File file = new File(SYMBOL_FILE_PATH);
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(
+                        Java_LexAnalysis.class.getClassLoader().getResourceAsStream(SYMBOL_FILE_PATH)))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] split = line.split(" ");
@@ -46,14 +48,26 @@ public class Java_LexAnalysis {
         SYMBOL_INDEX_MAP.put(SYMBOL_IDENTIFIER, 81);
     }
 
+    private static void readProg(Reader in) {
+        try (BufferedReader reader = new BufferedReader(in)) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                prog.append(line).append('\n');
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * this method is to read the standard input
      */
     private static void readProg() {
-        Scanner sc = new Scanner(System.in);
-        while (sc.hasNextLine()) {
-            prog.append(sc.nextLine());
-        }
+        readProg(new InputStreamReader(System.in));
+    }
+
+    private static void readProg(String file) throws IOException {
+        readProg(new InputStreamReader(Java_LexAnalysis.class.getClassLoader().getResourceAsStream(file)));
     }
 
 
@@ -92,9 +106,11 @@ public class Java_LexAnalysis {
 
         private Token analysisIdentifier() {
             StringBuilder sb = new StringBuilder();
-            while (Character.isLetterOrDigit(prog.charAt(i))) {
-                sb.append(prog.charAt(i));
-                i++;
+
+            for (char c = prog.charAt(i);
+                 c == '_' || Character.isLetterOrDigit(c);
+                 i++, c = prog.charAt(i)) {
+                sb.append(c);
             }
             String s = sb.toString();
             return new Token(SYMBOL_INDEX_MAP.containsKey(s) ? s : SYMBOL_IDENTIFIER, s);
@@ -102,31 +118,74 @@ public class Java_LexAnalysis {
 
         private Token analysisNumericalConstant() {
             int j = i;
-            while (Character.isDigit(prog.charAt(j))) {
-                j++;
+
+            if (prog.charAt(j) == '.' && !Character.isDigit(prog.charAt(j + 1))) {
+                return null;
             }
-            if (prog.charAt(j) != '.') {
-                i = j;
-                return new Token(SYMBOL_CONSTANT, prog.substring(i, j));
+
+            final int ALLOW_DOT = 1;
+            final int ALLOW_E = 1 << 1;
+
+            int state = ALLOW_DOT | ALLOW_E;
+            for (char c = prog.charAt(j); j < prog.length(); j++, c = prog.charAt(j)) {
+                if (Character.isDigit(c)) {
+                    continue;
+                }
+
+                if (c == '.') {
+                    if ((state & ALLOW_DOT) == 0) {
+                        break;
+                    }
+                    state &= ~ALLOW_DOT;
+                } else if (c == 'e' || c == 'E') {
+                    if ((state & ALLOW_E) == 0) {
+                        break;
+                    }
+                    state = 0;
+                    if (prog.charAt(j + 1) == '+' || prog.charAt(j + 1) == '-') {
+                        j++;
+                    }
+                } else {
+                    break;
+                }
             }
-            j++;
-            while (Character.isDigit(prog.charAt(j))) {
-                j++;
-            }
+
+            String s = prog.substring(i, j);
             i = j;
-            return new Token(SYMBOL_CONSTANT, prog.substring(i, j));
+            return new Token(SYMBOL_CONSTANT, s);
         }
 
         private Token analysisString() {
-            int j = i + 1;
-            StringBuilder sb = new StringBuilder();
-            i++;
-            while (prog.charAt(i) != '"') {
-                sb.append(prog.charAt(i));
-                i++;
+            int j = i;
+            for (; j < prog.length(); j++) {
+                char c = prog.charAt(j);
+                if (c == '\\') {
+                    j++;
+                } else if (c == '"') {
+                    break;
+                }
             }
-            i++;
-            return new Token(SYMBOL_CONSTANT, sb.toString());
+            String s = prog.substring(i, j);
+            i = j;
+            return new Token(SYMBOL_IDENTIFIER, s);
+        }
+
+        private Token analysisCharacter() {
+            int j = i;
+            for (; j < prog.length(); j++) {
+                char c = prog.charAt(j);
+                if (c == '\\') {
+                    j++;
+                } else if (c == '\'') {
+                    break;
+                }
+            }
+            if (j == i + 1) {
+                throw new RuntimeException("Empty character");
+            }
+            String s = prog.substring(i, j);
+            i = j;
+            return new Token(SYMBOL_IDENTIFIER, s);
         }
 
         public List<Token> analysis() {
@@ -148,7 +207,7 @@ public class Java_LexAnalysis {
                     }
                 }
                 // keyword or identifier
-                if (Character.isLetter(c)) {
+                if (c == '_' || Character.isLetter(c)) {
                     tokens.add(analysisIdentifier());
                     continue;
                 }
@@ -194,8 +253,13 @@ public class Java_LexAnalysis {
                 }
                 // unary operator
                 if (c == '!' || c == '~') {
-                    tokens.add(new Token(String.valueOf(c), String.valueOf(c)));
                     i++;
+                    if (prog.charAt(i) == '=') {
+                        tokens.add(new Token(c + "=", c + "="));
+                        i++;
+                        continue;
+                    }
+                    tokens.add(new Token(String.valueOf(c), String.valueOf(c)));
                     continue;
                 }
                 // delimiter
@@ -212,23 +276,23 @@ public class Java_LexAnalysis {
                     tokens.add(new Token("\"", "\""));
                     i++;
                     tokens.add(analysisString());
-                    i++;
+                    if (i >= prog.length() || prog.charAt(i) != '"') {
+                        throw new RuntimeException("string constant not end with \"");
+                    }
                     tokens.add(new Token("\"", "\""));
+                    i++;
                     continue;
                 }
                 // character constant
                 if (c == '\'') {
-                    tokens.add(new Token("'", String.valueOf(c)));
+                    tokens.add(new Token("'", "'"));
                     i++;
-                    if (prog.charAt(i) == '\\') {
-                        tokens.add(new Token(SYMBOL_CONSTANT, String.valueOf(prog.charAt(i + 1))));
-                        i += 2;
-                    } else {
-                        tokens.add(new Token(SYMBOL_CONSTANT, String.valueOf(prog.charAt(i))));
-                        i += 1;
+                    tokens.add(analysisCharacter());
+                    if (i >= prog.length() || prog.charAt(i) != '\'') {
+                        throw new RuntimeException("string constant not end with '");
                     }
+                    tokens.add(new Token("'", "'"));
                     i++;
-                    tokens.add(new Token("'", String.valueOf(prog.charAt(i))));
                 }
                 throw new RuntimeException("unknown symbol: " + c);
             }
@@ -245,15 +309,15 @@ public class Java_LexAnalysis {
     /**
      * you should add some code in this method to achieve this lab
      */
-    private static void analysis() {
+    private static void analysis() throws IOException {
         readSymbolIndex();
-        readProg();
+        readProg("prog4.txt");
         Analyser analyser = new Analyser(prog);
         List<Token> tokens = analyser.analysis();
 
         int i = 1;
         for (Token token : tokens) {
-            System.out.printf("%d: <%s, %d>", i, token.value, SYMBOL_INDEX_MAP.get(token.symbol));
+            System.out.printf("%d: <%s,%d>\n", i, token.value, SYMBOL_INDEX_MAP.get(token.symbol));
             i++;
         }
     }
@@ -263,7 +327,7 @@ public class Java_LexAnalysis {
      *
      * @param args
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         analysis();
     }
 }
