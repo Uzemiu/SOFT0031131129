@@ -147,7 +147,12 @@ public class Java_LLParserAnalysis {
             } else if(!X.equals(EPSILON)){
                 if(!transitionTable.containsKey(X)){
                     // X是终结符号
-                    System.out.printf("%d, Cannot resolve symbol: '%s' '%s' expected\n", ypair.getKey(), a, X);
+                    if (X.equals(";")) {
+                        // ';' expected
+                        System.out.printf("语法错误,第%d行,缺少\"%s\"\n", ypair.getKey() - 1, X);
+                    } else {
+
+                    }
                     result.add(analysisStack.pop());
                     continue;
                 }
@@ -158,7 +163,7 @@ public class Java_LLParserAnalysis {
                         result.add(analysisStack.pop());
                         analysisStack.push(new Pair<>(level + 1, EPSILON));
                     } else {
-                        System.out.printf("Cannot resolve symbol: %s. '%s' expect", a, X);
+                        System.out.printf("无法解析符号: %s\n", a);
                     }
                 } else {
                     result.add(analysisStack.pop());
@@ -174,8 +179,8 @@ public class Java_LLParserAnalysis {
         return result;
     }
 
-    private static List<Pair<Integer, String>> readProg(Reader in) {
-        List<Pair<Integer, String>> prog = new ArrayList<>();
+    public static List<Java_LLParserAnalysis.Pair<Integer, String>> readProg(Reader in) {
+        List<Java_LLParserAnalysis.Pair<Integer, String>> prog = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(in)) {
             String line;
             int lineNum = 0;
@@ -183,7 +188,10 @@ public class Java_LLParserAnalysis {
                 lineNum++;
                 String[] tokens = line.split("\\s+");
                 for (String token : tokens) {
-                    prog.add(new Pair<>(lineNum, token));
+                    token = token.trim();
+                    if (token.length() > 0) {
+                        prog.add(new Java_LLParserAnalysis.Pair<>(lineNum, token));
+                    }
                 }
             }
         } catch (IOException e) {
@@ -218,6 +226,9 @@ public class Java_LLParserAnalysis {
         for (Pair<Integer, String> pair : result) {
             int level = pair.key;
             String token = pair.value;
+            if (token.equals("$")) {
+                continue;
+            }
             for (int i = 0; i < level; i++) {
                 System.out.print("\t");
             }

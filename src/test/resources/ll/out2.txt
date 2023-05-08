@@ -1,0 +1,27 @@
+program
+	compoundstmt
+		{
+		stmts
+			stmt
+				assgstmt
+					ID
+					=
+					arithexpr
+						multexpr
+							simpleexpr
+								ID
+							multexprprime
+								E
+						arithexprprime
+							+
+							multexpr
+								simpleexpr
+									NUM
+								multexprprime
+									E
+							arithexprprime
+								E
+					;
+			stmts
+				E
+		}

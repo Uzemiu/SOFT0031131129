@@ -33,8 +33,7 @@ public class Java_LexAnalysis {
 
     public static void readSymbolIndex() {
         try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(
-                        Java_LexAnalysis.class.getClassLoader().getResourceAsStream(SYMBOL_FILE_PATH)))) {
+                new InputStreamReader(Java_LexAnalysis.class.getClassLoader().getResourceAsStream(SYMBOL_FILE_PATH)))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] split = line.split(" ");
@@ -59,17 +58,9 @@ public class Java_LexAnalysis {
         }
     }
 
-    /**
-     * this method is to read the standard input
-     */
     private static void readProg() {
         readProg(new InputStreamReader(System.in));
     }
-
-    private static void readProg(String file) throws IOException {
-        readProg(new InputStreamReader(Java_LexAnalysis.class.getClassLoader().getResourceAsStream(file)));
-    }
-
 
     public static class Analyser {
 
@@ -302,13 +293,6 @@ public class Java_LexAnalysis {
 
     }
 
-
-    // add your method here!!
-
-
-    /**
-     * you should add some code in this method to achieve this lab
-     */
     private static void analysis() throws IOException {
         readSymbolIndex();
         readProg();
@@ -322,11 +306,6 @@ public class Java_LexAnalysis {
         }
     }
 
-    /**
-     * this is the main method
-     *
-     * @param args
-     */
     public static void main(String[] args) throws IOException {
         analysis();
     }
