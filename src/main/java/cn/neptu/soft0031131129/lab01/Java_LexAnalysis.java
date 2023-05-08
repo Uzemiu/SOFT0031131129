@@ -7,9 +7,9 @@ import java.util.*;
 public class Java_LexAnalysis {
     private static StringBuffer prog = new StringBuffer();
 
-    private static final String SYMBOL_FILE_PATH = "c_key.txt";
+    private static final String SYMBOL_FILE_PATH = "c_keys.txt";
 
-    private static final Map<String, Integer> SYMBOL_INDEX_MAP = new HashMap<>();
+    public static final Map<String, Integer> SYMBOL_INDEX_MAP = new HashMap<>();
 
     private static final String SYMBOL_COMMENT = "_comment";
 
@@ -17,9 +17,9 @@ public class Java_LexAnalysis {
 
     private static final String SYMBOL_IDENTIFIER = "_id";
 
-    private static class Token {
-        private String symbol;
-        private String value;
+    public static class Token {
+        public String symbol;
+        public String value;
 
         public Token(String symbol, String value) {
             this.symbol = symbol;
@@ -31,7 +31,7 @@ public class Java_LexAnalysis {
         }
     }
 
-    private static void readSymbolIndex() {
+    public static void readSymbolIndex() {
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(
                         Java_LexAnalysis.class.getClassLoader().getResourceAsStream(SYMBOL_FILE_PATH)))) {
@@ -71,7 +71,7 @@ public class Java_LexAnalysis {
     }
 
 
-    private static class Analyser {
+    public static class Analyser {
 
         private StringBuffer prog;
         private int i;
@@ -311,7 +311,7 @@ public class Java_LexAnalysis {
      */
     private static void analysis() throws IOException {
         readSymbolIndex();
-        readProg("prog4.txt");
+        readProg();
         Analyser analyser = new Analyser(prog);
         List<Token> tokens = analyser.analysis();
 
