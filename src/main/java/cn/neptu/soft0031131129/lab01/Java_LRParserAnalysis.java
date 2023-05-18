@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -61,6 +62,8 @@ public class Java_LRParserAnalysis {
     }
 
     private static final Map<String, List<List<String>>> GRAMMAR = new HashMap<>();
+    private static final String AUGMENTED_START = "_program";
+    private static final String EPSILON = "E";
 
     static {
         // build grammar
@@ -90,6 +93,10 @@ public class Java_LRParserAnalysis {
                 }
                 rightList.add(symbols);
             }
+            if(GRAMMAR.isEmpty()) {
+                // 增广文法
+                GRAMMAR.put(AUGMENTED_START, Collections.singletonList(Collections.singletonList(left)));
+            }
             GRAMMAR.put(left, rightList);
         }
     }
@@ -97,15 +104,77 @@ public class Java_LRParserAnalysis {
     private static final Map<String, Set<String>> CLOSURE = new HashMap<>();
 
     private static Set<String> closure(String token) {
-        Set<String> c = CLOSURE.get(token);
-        if (c != null) {
-            return c;
+        Set<String> result = CLOSURE.get(token);
+        if (result != null) {
+            return result;
         }
-        Set<String> result = new HashSet<>();
+        result = new HashSet<>();
         List<List<String>> grammar = GRAMMAR.get(token);
+        if (grammar == null) {
+            // terminal
+            return result;
+        }
+        result.add(token);
         for (List<String> prod : grammar) {
-            if (!token.equals(prod)) {
+            String f = prod.get(0);
+            if (!token.equals(f)) {
+                result.addAll(closure(f));
+            }
+        }
+        return result;
+    }
 
+    private static final Map<String, Set<String>> FIRST = new HashMap<>();
+
+    private static Set<String> first(String token) {
+        Set<String> result = FIRST.get(token);
+        if (result != null) {
+            return result;
+        }
+        result = new HashSet<>();
+        List<List<String>> grammar = GRAMMAR.get(token);
+        if (grammar == null) {
+            // terminal
+            result.add(token);
+            return result;
+        }
+        for (List<String> prod : grammar) {
+            String f = prod.get(0);
+            if (!token.equals(f)) {
+                result.addAll(first(f));
+            }
+        }
+        return result;
+    }
+
+    public static class Production {
+        public String left;
+        public List<String> right;
+        public int dot;
+    }
+
+    private static final List<Production> PRODUCTIONS = new ArrayList<>();
+
+    private static void go2(String token, int dot, Set<String> lookahead) {
+        List<List<String>> grammar = GRAMMAR.get(token);
+        if (grammar == null) {
+            // terminal
+            return;
+        }
+        for (List<String> prod : grammar) {
+            Production p = new Production();
+            p.left = token;
+            p.right = prod;
+            p.dot = dot;
+            PRODUCTIONS.add(p);
+            if (dot < prod.size()) {
+                String next = prod.get(dot);
+                Set<String> first = first(next);
+                if (first.contains(EPSILON)) {
+                    first.remove(EPSILON);
+                    first.addAll(lookahead);
+                }
+                go2(next, 0, first);
             }
         }
     }
