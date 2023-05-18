@@ -15,7 +15,7 @@ public class LexAnalysisTest {
     @ValueSource(strings = {"prog1", "prog2", "prog3", "prog4"})
     public void test1(String in) throws IOException {
         Java_LexAnalysis.readSymbolIndex();
-        StringBuffer prog = Utils.readProg(in + ".txt");
+        StringBuffer prog = Utils.readProg("lex/" + in + ".txt");
         Java_LexAnalysis.Analyser analyser = new Java_LexAnalysis.Analyser(prog);
         List<Java_LexAnalysis.Token> tokens = analyser.analysis();
 

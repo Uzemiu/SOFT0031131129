@@ -12,7 +12,8 @@ public class LLParserTest {
     @ParameterizedTest
     @ValueSource(ints = {1, 2, 3, 4})
     public void test1(int i) throws IOException {
-            Reader reader = new InputStreamReader(LLParserTest.class.getClassLoader().getResourceAsStream("ll/in" + i + ".txt"));
+            Reader reader = new InputStreamReader(LLParserTest.class.getClassLoader().getResourceAsStream(
+                "trans/in" + i + ".txt"));
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             PrintStream out = new PrintStream(new BufferedOutputStream(baos), true);
@@ -33,7 +34,7 @@ public class LLParserTest {
             }
 
             String actual = baos.toString();
-            String expected = Utils.readProg("ll/out" + i + ".txt").toString();
+            String expected = Utils.readProg("trans/out" + i + ".txt").toString();
             assertEquals(expected, actual);
     }
 }

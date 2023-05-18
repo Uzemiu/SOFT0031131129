@@ -1,0 +1,55 @@
+
+b
+java:S1192("GDefine a constant instead of duplicating this literal "boolop" 9 times.(ÀßÆÛûÿÿÿÿ
+b
+java:S1192&"GDefine a constant instead of duplicating this literal "stmts" 11 times.(§Øšöûÿÿÿÿ
+b
+java:S1192'"GDefine a constant instead of duplicating this literal "ifstmt" 3 times.(÷ßıˆúÿÿÿÿ
+h
+java:S1192&"MDefine a constant instead of duplicating this literal "compoundstmt" 4 times.(§Øšöûÿÿÿÿ
+c
+java:S1192&"HDefine a constant instead of duplicating this literal "program" 3 times.(§Øšöûÿÿÿÿ
+\
+java:S1192@"FDefine a constant instead of duplicating this literal "while" 4 times.(³ıûŞ
+d
+java:S1192("IDefine a constant instead of duplicating this literal "boolexpr" 6 times.(ÀßÆÛûÿÿÿÿ
+j
+java:S1192)"ODefine a constant instead of duplicating this literal "multexprprime" 18 times.(ó‡Á°ûÿÿÿÿ
+e
+java:S1192'"JDefine a constant instead of duplicating this literal "whilestmt" 3 times.(÷ßıˆúÿÿÿÿ
+d
+java:S1192)"IDefine a constant instead of duplicating this literal "multexpr" 9 times.(ó‡Á°ûÿÿÿÿ
+d
+java:S1192'"IDefine a constant instead of duplicating this literal "assgstmt" 3 times.(÷ßıˆúÿÿÿÿ
+f
+java:S1192)"KDefine a constant instead of duplicating this literal "simpleexpr" 9 times.(ó‡Á°ûÿÿÿÿ
+k
+java:S1192("PDefine a constant instead of duplicating this literal "arithexprprime" 16 times.(ÀßÆÛûÿÿÿÿ
+f
+java:S1192("KDefine a constant instead of duplicating this literal "arithexpr" 12 times.(ÀßÆÛûÿÿÿÿ
+l	java:S117‹"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(óŒÌûùÿÿÿÿ
+e
+java:S1104"OMake key a static final constant or non-public and provide accessors if needed.(êšµÏ
+l
+java:S1104"QMake value a static final constant or non-public and provide accessors if needed.(Şª˜øÿÿÿÿ
+b	java:S101	"MRename this class name to match the regular expression '^[A-Z][a-zA-Z0-9]*$'.(Ü¥äØ
+c
+java:S3824x"HReplace this "Map.containsKey()" with a call to "Map.computeIfAbsent()".(œ†Ïùÿÿÿÿ
+p	java:S115€"ZRename this constant name to match the regular expression '^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$'.(ú™÷Ø
+i
+java:S3776‚"RRefactor this method to reduce its Cognitive Complexity from 27 to the 15 allowed.(¨£–¥
+g
+java:S3457˜"Q%n should be used in place of \n to produce the platform-specific line separator.(É‡N
+N	java:S106˜"9Replace this use of System.out or System.err by a logger.(É‡N
+?	java:S108™")Either remove or fill this block of code.(å¥‡
+h
+java:S3457¦"Q%n should be used in place of \n to produce the platform-specific line separator.(¨¨™
+O	java:S106¦"9Replace this use of System.out or System.err by a logger.(¨¨™
+ˆ
+java:S1130Ò"lRemove the declaration of thrown exception 'java.io.IOException', as it cannot be thrown from method's body.(êèè¸úÿÿÿÿ
+O	java:S106é"9Replace this use of System.out or System.err by a logger.(Û‚öà
+O	java:S106ë"9Replace this use of System.out or System.err by a logger.(ñšÔ
+?
+java:S1068")Remove this unused "SYNCH" private field.(¬ÎÓ“
+I
+java:S1144Ò"-Remove this unused private "readProg" method.(êèè¸úÿÿÿÿ

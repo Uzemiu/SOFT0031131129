@@ -1,0 +1,2 @@
+error message:line 1,realnum can not be translated into int type
+error message:line 5,division by zero
