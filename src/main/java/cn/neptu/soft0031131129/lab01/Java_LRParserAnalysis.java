@@ -45,7 +45,7 @@ public class Java_LRParserAnalysis {
     }
 
     private static final String AUGMENTED_START = "_program";
-    private static final String EPSILON = "Ep";
+    private static final String EPSILON = "E";
     private static final String $ = "$";
     public static final String PROBLEM_GRAMMAR =
             "program -> compoundstmt\n"
@@ -98,10 +98,6 @@ public class Java_LRParserAnalysis {
             result = 31 * result + dot;
             return result;
         }
-    }
-
-    public static void parse() {
-        Deque<String> symbolStack = new LinkedList<>();
     }
 
     public static class Analyser {
@@ -326,27 +322,28 @@ public class Java_LRParserAnalysis {
             }
         }
 
-        public void analysis(List<Java_LRParserAnalysis.Pair<Integer, String>> input) {
+        public List<Production> analysis(List<Java_LRParserAnalysis.Pair<Integer, String>> input) {
+            List<Production> result = new ArrayList<>();
             input.add(new Java_LRParserAnalysis.Pair<>(0, $));
             Stack<Integer> stateStack = new Stack<>();
             stateStack.push(0);
 
             int p = 0;
-            while (true) {
+            boolean accepted = false;
+            while (!accepted) {
                 int state = stateStack.peek();
                 String symbol = input.get(p).value;
                 Integer item = table.get(state).get(symbol);
                 if (item == null) {
-                    // error
-                    System.err.println("error");
                     symbol = EPSILON;
-                    break;
+                    item = table.get(state).get(symbol);
+                    p--;
                 }
                 int action = item / ACTION_BASE;
                 int next = item % ACTION_BASE;
                 switch (action) {
                 case SHIFT:
-                    ++p;
+                    p++;
                     stateStack.push(next);
                     break;
                 case REDUCE:
@@ -357,10 +354,39 @@ public class Java_LRParserAnalysis {
                     int t = stateStack.peek();
                     int go = table.get(t).get(reduceProd.left);
                     stateStack.push(go % ACTION_BASE);
+
+                    result.add(reduceProd);
                     break;
                 case ACCEPT:
+                    accepted = true;
                     break;
                 default:
+                }
+            }
+            return result;
+        }
+
+        public void printResult(List<Production> productions) {
+            List<String> output = new ArrayList<>();
+            output.add(grammar.get(AUGMENTED_START).get(0).get(0));
+            System.out.print(output.get(0) + " ");
+            for (int i = productions.size() - 1; i >= 0; i--) {
+                Production production = productions.get(i);
+                String left = production.left;
+                List<String> right = production.right;
+                for (int j = output.size() - 1; j >= 0; --j) {  //注意是从右往左解析
+                    if (output.get(j).equals(left)) {
+                        output.remove(j);
+                        for (int k = right.size() - 1; k >= 0; --k) {
+                            if (right.get(k).equals(EPSILON)) continue;
+                            output.add(j, right.get(k));
+                        }
+                        break;
+                    }
+                }
+                System.out.println("=> ");
+                for (String item : output) {
+                    System.out.print(item + " ");
                 }
             }
         }
@@ -371,11 +397,14 @@ public class Java_LRParserAnalysis {
                 "T -> T * F | F\n" +
                 "F -> ( E ) | id";
         String excode = "id * id + id";
-        Analyser analyser = new Analyser(exg);
+
+
+        Analyser analyser = new Analyser(PROBLEM_GRAMMAR);
         String s = "{\n" +
                 "ID = NUM ;\n" +
                 "}";
-        analyser.analysis(readProg(new StringReader(excode)));
+        List<Production> result = analyser.analysis(readProg(new StringReader(s)));
+        analyser.printResult(result);
 
     }
 }
