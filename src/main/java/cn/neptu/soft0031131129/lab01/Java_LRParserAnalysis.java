@@ -101,7 +101,6 @@ public class Java_LRParserAnalysis {
     }
 
     public static class Analyser {
-        public String code;
 
         private final Map<String, List<List<String>>> grammar = new HashMap<>();
         private final List<Production> productions = new ArrayList<>();
@@ -173,8 +172,6 @@ public class Java_LRParserAnalysis {
                         String nextSymbol = prod.right.get(prod.dot);
                         List<Production> nextProd = next.computeIfAbsent(nextSymbol, k -> new ArrayList<>());
                         nextProd.add(prod.next());
-                    } else {
-                        // todo
                     }
                 }
                 for (Map.Entry<String, List<Production>> entry : next.entrySet()) {
@@ -193,12 +190,12 @@ public class Java_LRParserAnalysis {
             for (int i = 0; i < states.size(); i++) {
                 List<Production> state = states.get(i);
                 for (Production prod : state) {
+                    Production reduceProd = new Production(prod.left, prod.right, 0);
                     if (prod.equals(acceptedProd)) {
                         tableSet(i, $, ACCEPT, 0);
                     } else if (prod.dot == prod.right.size()) {
                         Set<String> follow = follow(prod.left);
                         for (String s : follow) {
-                            Production reduceProd = new Production(prod.left, prod.right, 0);
                             int index = productions.indexOf(reduceProd);
                             if (index < 0) {
                                 productions.add(reduceProd);
@@ -335,9 +332,18 @@ public class Java_LRParserAnalysis {
                 String symbol = input.get(p).value;
                 Integer item = table.get(state).get(symbol);
                 if (item == null) {
-                    symbol = EPSILON;
-                    item = table.get(state).get(symbol);
-                    p--;
+                    item = table.get(state).get(EPSILON);
+                    if (item == null){
+                        // TODO 错误处理
+                        int i = 90;
+                        continue;
+                    }
+                    int action = item / ACTION_BASE;
+                    int next = item % ACTION_BASE;
+                    if (action == SHIFT) {
+                        stateStack.push(next);
+                        continue;
+                    }
                 }
                 int action = item / ACTION_BASE;
                 int next = item % ACTION_BASE;
