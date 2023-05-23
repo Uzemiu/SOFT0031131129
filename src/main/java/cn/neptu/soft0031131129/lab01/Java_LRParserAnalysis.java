@@ -48,21 +48,15 @@ public class Java_LRParserAnalysis {
     private static final String EPSILON = "E";
     private static final String $ = "$";
     public static final String PROBLEM_GRAMMAR =
-            "program -> compoundstmt\n"
-                    + "stmt -> ifstmt | whilestmt | assgstmt | compoundstmt\n"
-                    + "compoundstmt -> { stmts }\n"
-                    + "stmts -> stmt stmts | E\n"
-                    + "ifstmt -> if ( boolexpr ) then stmt else stmt\n"
-                    + "whilestmt -> while ( boolexpr ) stmt\n"
-                    + "assgstmt -> ID = arithexpr ;\n"
-                    + "boolexpr -> arithexpr boolop arithexpr\n"
-                    + "boolop -> < | > | <= | >= | ==\n"
-                    + "arithexpr -> multexpr arithexprprime\n"
-                    + "arithexprprime -> + multexpr arithexprprime | - multexpr arithexprprime | E\n"
-                    + "multexpr -> simpleexpr multexprprime\n"
-                    + "multexprprime -> * simpleexpr multexprprime | / simpleexpr multexprprime | E\n"
-                    + "simpleexpr -> ID | NUM | ( arithexpr )";
-
+        "program -> compoundstmt\n" + "stmt -> ifstmt | whilestmt | assgstmt | compoundstmt\n"
+            + "compoundstmt -> { stmts }\n" + "stmts -> stmt stmts | E\n"
+            + "ifstmt -> if ( boolexpr ) then stmt else stmt\n" + "whilestmt -> while ( boolexpr ) stmt\n"
+            + "assgstmt -> ID = arithexpr ;\n" + "boolexpr -> arithexpr boolop arithexpr\n"
+            + "boolop -> < | > | <= | >= | ==\n" + "arithexpr -> multexpr arithexprprime\n"
+            + "arithexprprime -> + multexpr arithexprprime | - multexpr arithexprprime | E\n"
+            + "multexpr -> simpleexpr multexprprime\n"
+            + "multexprprime -> * simpleexpr multexprprime | / simpleexpr multexprprime | E\n"
+            + "simpleexpr -> ID | NUM | ( arithexpr )";
 
     public static class Production {
         public String left;
@@ -80,14 +74,24 @@ public class Java_LRParserAnalysis {
         }
 
         @Override
+        public String toString() {
+            return left + " -> " + String.join(" ", right.subList(0, dot)) + " . " + String.join(" ",
+                right.subList(dot, right.size()));
+        }
+
+        @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
 
-            Production that = (Production) o;
+            Production that = (Production)o;
 
-            if (dot != that.dot) return false;
-            if (!Objects.equals(left, that.left)) return false;
+            if (dot != that.dot)
+                return false;
+            if (!Objects.equals(left, that.left))
+                return false;
             return Objects.equals(right, that.right);
         }
 
@@ -105,7 +109,6 @@ public class Java_LRParserAnalysis {
         private final Map<String, List<List<String>>> grammar = new HashMap<>();
         private final List<Production> productions = new ArrayList<>();
 
-
         private final Map<String, Set<String>> closure = new HashMap<>();
 
         private final List<List<Production>> states = new ArrayList<>();
@@ -115,6 +118,7 @@ public class Java_LRParserAnalysis {
         private static final int REDUCE = 3;
         private static final int ACCEPT = 4;
         private static final int GOTO = 5;
+        private static final int RECOVER = 6;
 
         private void tableSet(int state, String symbol, int action, int next) {
             Map<String, Integer> row = table.get(state);
@@ -129,6 +133,30 @@ public class Java_LRParserAnalysis {
         public Analyser(String grammar) {
             buildGrammar(grammar);
             buildStates();
+            buildRecoverTable();
+        }
+
+        private final List<String> recoverSymbols = new ArrayList<>();
+
+        private int getRecoverSymbol(String symbol) {
+            int index = recoverSymbols.indexOf(symbol);
+            if (index == -1) {
+                recoverSymbols.add(symbol);
+                return recoverSymbols.size() - 1;
+            }
+            return index;
+        }
+
+        private void buildRecoverTable() {
+            Production p = new Production("simpleexpr", Arrays.asList("NUM"), 1);
+            for (int i = 0; i < states.size(); i++) {
+                List<Production> state = states.get(i);
+                for (Production prod : state) {
+                    if (prod.equals(p)) {
+                        tableSet(i, "}", RECOVER, getRecoverSymbol(";"));
+                    }
+                }
+            }
         }
 
         private int statesIndexOf(List<Production> prods) {
@@ -325,18 +353,16 @@ public class Java_LRParserAnalysis {
             Stack<Integer> stateStack = new Stack<>();
             stateStack.push(0);
 
-            int p = 0;
+            int i = 0;
             boolean accepted = false;
             while (!accepted) {
                 int state = stateStack.peek();
-                String symbol = input.get(p).value;
+                String symbol = input.get(i).value;
                 Integer item = table.get(state).get(symbol);
                 if (item == null) {
                     item = table.get(state).get(EPSILON);
-                    if (item == null){
-                        // TODO 错误处理
-                        int i = 90;
-                        continue;
+                    if (item == null) {
+                        throw new RuntimeException("syntax error");
                     }
                     int action = item / ACTION_BASE;
                     int next = item % ACTION_BASE;
@@ -348,25 +374,31 @@ public class Java_LRParserAnalysis {
                 int action = item / ACTION_BASE;
                 int next = item % ACTION_BASE;
                 switch (action) {
-                case SHIFT:
-                    p++;
-                    stateStack.push(next);
-                    break;
-                case REDUCE:
-                    Production reduceProd = productions.get(next);
-                    for (int n = reduceProd.right.size(); n > 0; n--) {
-                        stateStack.pop();
-                    }
-                    int t = stateStack.peek();
-                    int go = table.get(t).get(reduceProd.left);
-                    stateStack.push(go % ACTION_BASE);
+                    case SHIFT:
+                        i++;
+                        stateStack.push(next);
+                        break;
+                    case REDUCE:
+                        Production reduceProd = productions.get(next);
+                        for (int n = reduceProd.right.size(); n > 0; n--) {
+                            stateStack.pop();
+                        }
+                        int t = stateStack.peek();
+                        int go = table.get(t).get(reduceProd.left);
+                        stateStack.push(go % ACTION_BASE);
 
-                    result.add(reduceProd);
-                    break;
-                case ACCEPT:
-                    accepted = true;
-                    break;
-                default:
+                        result.add(reduceProd);
+                        break;
+                    case ACCEPT:
+                        accepted = true;
+                        break;
+                    case RECOVER:
+                        String recoverSymbol = recoverSymbols.get(next);
+                        int line = input.get(Math.max(0, i - 1)).key;
+                        System.out.printf("语法错误，第%d行，缺少\"%s\"\n", line, recoverSymbol);
+                        input.add(i, new Java_LRParserAnalysis.Pair<>(-1, recoverSymbol));
+                        break;
+                    default:
                 }
             }
             return result;
@@ -384,13 +416,14 @@ public class Java_LRParserAnalysis {
                     if (output.get(j).equals(left)) {
                         output.remove(j);
                         for (int k = right.size() - 1; k >= 0; --k) {
-                            if (right.get(k).equals(EPSILON)) continue;
+                            if (right.get(k).equals(EPSILON))
+                                continue;
                             output.add(j, right.get(k));
                         }
                         break;
                     }
                 }
-                System.out.println("=> ");
+                System.out.println("=>");
                 for (String item : output) {
                     System.out.print(item + " ");
                 }
@@ -399,16 +432,11 @@ public class Java_LRParserAnalysis {
     }
 
     public static void main(String[] args) throws IOException {
-        String exg = "E -> E + T | T\n" +
-                "T -> T * F | F\n" +
-                "F -> ( E ) | id";
+        String exg = "E -> E + T | T\n" + "T -> T * F | F\n" + "F -> ( E ) | id";
         String excode = "id * id + id";
 
-
         Analyser analyser = new Analyser(PROBLEM_GRAMMAR);
-        String s = "{\n" +
-                "ID = NUM ;\n" +
-                "}";
+        String s = "{\n" + "ID = NUM ;\n" + "}";
         List<Production> result = analyser.analysis(readProg(new StringReader(s)));
         analyser.printResult(result);
 
