@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -355,7 +354,54 @@ public class Java_TranslationSchemaAnalysis {
         }
     }
 
-    public static final String PROBLEM_GRAMMAR = "program -> decls compoundstmt\n" + "decls -> decl ; decls | E\n"
+    public enum NodeType {
+
+        PROGRAM,
+        LITERAL,
+        IDENTIFIER,
+        STATEMENTS,
+        BLOCK_STATEMENT,
+        IF_STATEMENT,
+        WHILE_STATEMENT,
+        FOR_STATEMENT,
+        RETURN_STATEMENT,
+        BREAK_STATEMENT,
+        CONTINUE_STATEMENT,
+        EXPRESSION_STATEMENT,
+        EMPTY_STATEMENT,
+        EXPRESSION,
+        ASSIGNMENT_EXPRESSION,
+        BINARY_EXPRESSION,
+        UNARY_EXPRESSION,
+        VARIABLE_DECLARATION,
+        DECLARATIONS,
+    }
+
+    public static class TreeNode {
+        public final NodeType type;
+        Map<String, Object> attributes = new HashMap<>();
+
+        public TreeNode(NodeType type) {
+            this.type = type;
+        }
+
+        public void setAttribute(String key, Object value){
+            attributes.put(key, value);
+        }
+        public <T> T getAttribute(String key){
+            return (T) attributes.get(key);
+        }
+
+        public void execute(){
+
+        }
+    }
+
+
+
+    public static final String PROBLEM_GRAMMAR =
+            "program -> decls compoundstmt\n"
+                    + "decls -> decl ; decls | E\n"
         + "decl -> int ID = INTNUM | real ID = REALNUM | int ID = REALNUM | real ID = INTNUM\n"
         + "stmt -> ifstmt | assgstmt | compoundstmt\n"
         + "compoundstmt -> { stmts }\n" + "stmts -> stmt stmts | E\n"
@@ -666,6 +712,11 @@ public class Java_TranslationSchemaAnalysis {
                 }
             }
         }
+    }
+
+    public static class Scope {
+
+        private final Map<String, Integer> variables = new HashMap<>();
     }
 
     public static void main(String[] args) {

@@ -1,0 +1,33 @@
+program -> decls compoundstmt | {type: PROGRAM, body: [$decls, $compoundstmt]}
+decls -> decl ; decls | {type: DECLARATIONS, declarations: [$decl, $...decls.declarations]}
+decls -> E | {type: DECLARATIONS, declarations: []}
+decl -> int ID = INTNUM | {type: VARIABLE_DECLARATION, id: $ID, value: $INTNUM, kind: int}
+decl -> real ID = REALNUM | {type: VARIABLE_DECLARATION, id: $ID, value: $REALNUM, kind: real}
+decl -> int ID = REALNUM | {type: VARIABLE_DECLARATION, id: $ID, value: $REALNUM, kind: int}
+decl -> real ID = INTNUM | {type: VARIABLE_DECLARATION, id: $ID, value: $INTNUM, kind: real}
+stmt -> ifstmt | $ifstmt
+stmt -> assgstmt | $assgstmt
+stmt -> compoundstmt | $compoundstmt
+compoundstmt -> { stmts } | {type: BLOCK_STATEMENT, body: $stmts}
+stmts -> stmt stmts | {type: STATEMENTS, statements: [$stmt, $...stmts.statements]}
+stmts -> E | NULL
+ifstmt -> if ( boolexpr ) then stmt else stmt | {type: IF_STATEMENT, test: $boolexpr, consequent: $stmt, alternate: $stmt}
+assgstmt -> ID = arithexpr ; | {type: ASSIGNMENT_STATEMENT, left: $ID, right: $arithexpr}
+boolexpr -> arithexpr boolop arithexpr | {type: BINARY_EXPRESSION, left: $arithexpr, operator: $boolop, right: $arithexpr}
+boolop -> < | {value: <}
+boolop -> > | {value: >}
+boolop -> <= | {value: <=}
+boolop -> >= | {value: >=}
+boolop -> == | {value: ==}
+arithexpr -> multexpr arithexprprime {type: BINARY_EXPRESSION, left: $multexpr, operator: $arithexprprime.operator, right: $arithexprprime.right}
+arithexprprime -> + multexpr arithexprprime | {left: $multexpr, operator: +, right: $arithexprprime}
+arithexprprime -> - multexpr arithexprprime | {left: $multexpr, operator: -, right: $arithexprprime}
+arithexprprime -> E | {left: NULL, right: NULL}
+multexpr -> simpleexpr multexprprime | {type: BINARY_EXPRESSION, left: $simpleexpr, operator: $multexprprime?.operator, right: $multexprprime?.right}
+multexprprime -> * simpleexpr multexprprime | {left: $simpleexpr, operator: *, right: $multexprprime}
+multexprprime -> / simpleexpr multexprprime | {left: $simpleexpr, operator: /, right: $multexprprime}
+multexprprime -> E | {left: NULL, right: NULL}
+simpleexpr -> ID | {type: IDENTIFIER, value: $ID}
+simpleexpr -> INTNUM | {type: LITERAL, value: $INTNUM, kind: int}
+simpleexpr -> REALNUM | {type: LITERAL, value: $REALNUM, kind: real}
+simpleexpr -> ( arithexpr ) | {type: $arithexpr}
