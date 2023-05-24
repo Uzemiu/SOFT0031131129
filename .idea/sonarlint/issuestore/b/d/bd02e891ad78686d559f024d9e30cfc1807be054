@@ -1,0 +1,145 @@
+
+h	java:S112¹"FDefine and throw a dedicated exception instead of using a generic one.(¦ôâùÿÿÿÿ8À¯¨ì„1
+b	java:S112"FDefine and throw a dedicated exception instead of using a generic one.(›ÚŸC8À¯¨ì„1
+h	java:S112©"FDefine and throw a dedicated exception instead of using a generic one.(°ò‰­şÿÿÿÿ8À¯¨ì„1
+h	java:S112®"FDefine and throw a dedicated exception instead of using a generic one.(’Åñùÿÿÿÿ8À¯¨ì„1
+h	java:S112Ç"FDefine and throw a dedicated exception instead of using a generic one.(æ¡âäûÿÿÿÿ8Á¯¨ì„1
+h	java:S112ƒ"FDefine and throw a dedicated exception instead of using a generic one.(«ÑŸİÿÿÿÿÿ8Á¯¨ì„1
+c	java:S112‰"FDefine and throw a dedicated exception instead of using a generic one.(·‡…8Á¯¨ì„1
+R
+java:S3740º"/Provide the parametrized type for this generic.(çÔ¬Òùÿÿÿÿ8Á¯¨ì„1
+R
+java:S3740º"/Provide the parametrized type for this generic.(çÔ¬Òùÿÿÿÿ8Á¯¨ì„1
+R
+java:S3740¼"/Provide the parametrized type for this generic.(ˆ‚ŞÊşÿÿÿÿ8Á¯¨ì„1
+R
+java:S3740¼"/Provide the parametrized type for this generic.(ˆ‚ŞÊşÿÿÿÿ8Á¯¨ì„1
+n
+java:S1192ã"KDefine a constant instead of duplicating this literal "simpleexpr" 7 times.(Ø÷ªğşÿÿÿÿ8Ã¯¨ì„1
+i
+java:S1192Å"FDefine a constant instead of duplicating this literal "stmts" 4 times.(ü‡˜¹øÿÿÿÿ8Ã¯¨ì„1
+v
+java:S1192¾"SUse already-defined constant 'SYMBOL_INTNUM' instead of duplicating its value here.(’‰º·ûÿÿÿÿ8Ã¯¨ì„1
+r
+java:S1192¿"TUse already-defined constant 'SYMBOL_REALNUM' instead of duplicating its value here.(€É²Ê8Ã¯¨ì„1
+q
+java:S1192ã"NDefine a constant instead of duplicating this literal "multexprprime" 6 times.(Ø÷ªğşÿÿÿÿ8Ã¯¨ì„1
+k
+java:S1192»"MDefine a constant instead of duplicating this literal "compoundstmt" 3 times.(´ç…’8Ã¯¨ì„1
+d
+java:S1192»"FDefine a constant instead of duplicating this literal "decls" 4 times.(´ç…’8Ã¯¨ì„1
+r
+java:S1192Ù"ODefine a constant instead of duplicating this literal "arithexprprime" 6 times.(Ë¡Òÿÿÿÿÿ8Ã¯¨ì„1
+m
+java:S1192Ë"JDefine a constant instead of duplicating this literal "arithexpr" 5 times.(±ôà¥øÿÿÿÿ8Ã¯¨ì„1
+e
+java:S1192Í"GDefine a constant instead of duplicating this literal "boolop" 6 times.(×ƒ”ğ8Ã¯¨ì„1
+l
+java:S1192Ù"IDefine a constant instead of duplicating this literal "multexpr" 4 times.(Ë¡Òÿÿÿÿÿ8Ã¯¨ì„1
+v	java:S135ƒ"YReduce the total number of break and continue statements in this loop to use at most one.(ò’ÿ8Ä¯¨ì„1
+{	java:S135Ç"YReduce the total number of break and continue statements in this loop to use at most one.(†§¡±øÿÿÿÿ8Ä¯¨ì„1
+M
+java:S1066õ"/Merge this if statement with the enclosing one.(¶ÙÏê8Ä¯¨ì„1
+l
+java:S1104"PMake line a static final constant or non-public and provide accessors if needed.(¢—ƒ#8Ç¯¨ì„1
+t
+java:S1104"RMake symbol a static final constant or non-public and provide accessors if needed.(èãûÙùÿÿÿÿ8Ç¯¨ì„1
+s
+java:S1104"QMake value a static final constant or non-public and provide accessors if needed.(¸²·Óüÿÿÿÿ8Ç¯¨ì„1
+n
+java:S1104·"PMake left a static final constant or non-public and provide accessors if needed.(ÿæĞÃ8Ç¯¨ì„1
+t
+java:S1104¸"QMake right a static final constant or non-public and provide accessors if needed.(÷¤àÿÿÿÿÿÿ8Ç¯¨ì„1
+r
+java:S1104¹"OMake dot a static final constant or non-public and provide accessors if needed.(•šçúÿÿÿÿ8Ç¯¨ì„1
+w
+java:S1104º"TMake producer a static final constant or non-public and provide accessors if needed.(çÔ¬Òùÿÿÿÿ8Ç¯¨ì„1
+i	java:S101"MRename this class name to match the regular expression '^[A-Z][a-zA-Z0-9]*$'.(ë¡ïî8È¯¨ì„1
+<
+java:S1700Ÿ"Rename field "statements"(¯îƒ€ÿÿÿÿÿ8Ì¯¨ì„1
+>
+java:S1700Ó"Rename field "declarations"(î¹™ùÿÿÿÿ8Ì¯¨ì„1
+Ÿ
+java:S1186Í"€Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation.(Çµí‘8¶¬ì„1
+s
+java:S1149ı"PReplace the synchronized class "Stack" by an unsynchronized one such as "Deque".(»–ÃËüÿÿÿÿ8¸¬ì„1
+?
+java:S2386@"Make this member "protected".(‹ÏÎÿÿÿÿÿ8£Á¨ì„1
+o
+java:S3776x"RRefactor this method to reduce its Cognitive Complexity from 21 to the 15 allowed.( îìõ8¬Á¨ì„1
+p
+java:S3776À"RRefactor this method to reduce its Cognitive Complexity from 66 to the 15 allowed.(®Ñ¢8³Á¨ì„1
+J
+java:S1172Š",Remove this unused method parameter "scope".(Ø×ˆË8ÃÁ¨ì„1
+Ğ
+java:S1845“"¬Rename field "value" to prevent any misunderstanding/clash with method "value" defined in superclass "cn.neptu.soft0031131129.lab01.Java_TranslationSchemaAnalysis$ASTNode".(ô¡¥ıÿÿÿÿ8ÄÁ¨ì„1
+K
+java:S1185õ"(Remove this method to simply inherit it.(Òúì¿ùÿÿÿÿ8ÉÁ¨ì„1
+K
+java:S1185ˆ"(Remove this method to simply inherit it.(Òúì¿ùÿÿÿÿ8ËÁ¨ì„1
+K
+java:S1185™"(Remove this method to simply inherit it.(Òúì¿ùÿÿÿÿ8ÌÁ¨ì„1
+K
+java:S1185§"(Remove this method to simply inherit it.(Òúì¿ùÿÿÿÿ8ÍÁ¨ì„1
+K
+java:S1185¶"(Remove this method to simply inherit it.(Òúì¿ùÿÿÿÿ8ÏÁ¨ì„1
+K
+java:S1185Í"(Remove this method to simply inherit it.(Òúì¿ùÿÿÿÿ8ÑÁ¨ì„1
+K
+java:S1185Û"(Remove this method to simply inherit it.(Òúì¿ùÿÿÿÿ8ÒÁ¨ì„1
+K
+java:S1185é"(Remove this method to simply inherit it.(Òúì¿ùÿÿÿÿ8ÔÁ¨ì„1
+w	java:S115ñ"ZRename this constant name to match the regular expression '^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$'.(ú™÷Ø8ÔÁ¨ì„1
+s
+java:S1149ı"PReplace the synchronized class "Stack" by an unsynchronized one such as "Deque".(»–ÃËüÿÿÿÿ8Ğ¬ì„1
+p
+java:S3776"RRefactor this method to reduce its Cognitive Complexity from 44 to the 15 allowed.(’õØ©8İÁ¨ì„1
+_
+java:S1117©"<Rename "closure" which hides the field declared at line 628.(ßÜí³ÿÿÿÿÿ8áÁ¨ì„1
+p
+java:S3776û"RRefactor this method to reduce its Cognitive Complexity from 23 to the 15 allowed.(–øÇé8éÁ¨ì„1
+v
+java:S1602ç"SRemove useless curly braces around statement and then remove useless return keyword(¾®×Ìÿÿÿÿÿ8â¬ì„1
+v
+java:S1602ê"SRemove useless curly braces around statement and then remove useless return keyword(é‰†”úÿÿÿÿ8ä¬ì„1
+q
+java:S1602õ"SRemove useless curly braces around statement and then remove useless return keyword(¼£èº8³¯ì„1
+u
+java:S3776­"RRefactor this method to reduce its Cognitive Complexity from 17 to the 15 allowed.(ú×÷•ûÿÿÿÿ8ç¬ì„1
+[	java:S106°"9Replace this use of System.out or System.err by a logger.(Ÿ¿Âüÿÿÿÿ8è¬ì„1
+[	java:S106À"9Replace this use of System.out or System.err by a logger.(¤ı³ïùÿÿÿÿ8é¬ì„1
+[	java:S106Â"9Replace this use of System.out or System.err by a logger.(šıÏÕüÿÿÿÿ8é¬ì„1
+
+java:S1128"kRemove this unused import 'cn.neptu.soft0031131129.lab01.Java_TranslationSchemaAnalysis.BoolOp.BOOL_OP_EQ'.(¿ÔÌèşÿÿÿÿ8ˆÄ®ì„1
+K
+java:S1068ê"(Remove this unused "left" private field.(Í£„şÿÿÿÿ8µÂ¨ì„1
+L
+java:S1068ë")Remove this unused "right" private field.(öøú°øÿÿÿÿ8µÂ¨ì„1
+K
+java:S1068ü"(Remove this unused "test" private field.(…Û÷Şûÿÿÿÿ8µÂ¨ì„1
+L
+java:S1068ı".Remove this unused "consequent" private field.(¼ì³’8µÂ¨ì„1
+P
+java:S1068ş"-Remove this unused "alternate" private field.(¼Æ¹’üÿÿÿÿ8µÂ¨ì„1
+K
+java:S1068"(Remove this unused "left" private field.(Í£„şÿÿÿÿ8µÂ¨ì„1
+L
+java:S1068")Remove this unused "right" private field.(öøú°øÿÿÿÿ8µÂ¨ì„1
+Q
+java:S1068Ÿ".Remove this unused "statements" private field.(¯îƒ€ÿÿÿÿÿ8µÂ¨ì„1
+Q
+java:S1068®".Remove this unused "statements" private field.(Šå¤‘ùÿÿÿÿ8µÂ¨ì„1
+K
+java:S1068¼"(Remove this unused "kind" private field.(ë¾¼ıÿÿÿÿ8µÂ¨ì„1
+I
+java:S1068½"&Remove this unused "id" private field.(îÒ µÿÿÿÿÿ8µÂ¨ì„1
+G
+java:S1068¾")Remove this unused "value" private field.(°ŠÍ8µÂ¨ì„1
+S
+java:S1068Ó"0Remove this unused "declarations" private field.(î¹™ùÿÿÿÿ8¶Â¨ì„1
+K
+java:S1068á"(Remove this unused "body" private field.(ï‡â€úÿÿÿÿ8¶Â¨ì„1
+K
+java:S1068Ê"-Remove this unused "variables" private field.(¨óºÎ8ë¬ì„1
+ä
+java:S6541À"ÅA "Brain Method" was detected. Refactor it to reduce at least one of the following metrics: LOC from 103 to 64, Complexity from 54 to 14, Nesting Level from 5 to 2, Number of Variables from 7 to 6.(®Ñ¢8·Â¨ì„1

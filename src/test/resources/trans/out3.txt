@@ -1,3 +1,80 @@
 a: 11
 b: 275
 c: 10.5
+
+program =>
+decls compoundstmt =>
+decls { stmts } =>
+decls { stmt stmts } =>
+decls { stmt stmt stmts } =>
+decls { stmt stmt stmt stmts } =>
+decls { stmt stmt stmt stmt stmts } =>
+decls { stmt stmt stmt stmt } =>
+decls { stmt stmt stmt ifstmt } =>
+decls { stmt stmt stmt if ( boolexpr ) then stmt else stmt } =>
+decls { stmt stmt stmt if ( boolexpr ) then stmt else assgstmt } =>
+decls { stmt stmt stmt if ( boolexpr ) then stmt else ID = arithexpr ; } =>
+decls { stmt stmt stmt if ( boolexpr ) then stmt else ID = multexpr arithexprprime ; } =>
+decls { stmt stmt stmt if ( boolexpr ) then stmt else ID = multexpr ; } =>
+decls { stmt stmt stmt if ( boolexpr ) then stmt else ID = simpleexpr multexprprime ; } =>
+decls { stmt stmt stmt if ( boolexpr ) then stmt else ID = simpleexpr / simpleexpr multexprprime ; } =>
+decls { stmt stmt stmt if ( boolexpr ) then stmt else ID = simpleexpr / simpleexpr ; } =>
+decls { stmt stmt stmt if ( boolexpr ) then stmt else ID = simpleexpr / INTNUM ; } =>
+decls { stmt stmt stmt if ( boolexpr ) then stmt else ID = ID / INTNUM ; } =>
+decls { stmt stmt stmt if ( boolexpr ) then assgstmt else ID = ID / INTNUM ; } =>
+decls { stmt stmt stmt if ( boolexpr ) then ID = arithexpr ; else ID = ID / INTNUM ; } =>
+decls { stmt stmt stmt if ( boolexpr ) then ID = multexpr arithexprprime ; else ID = ID / INTNUM ; } =>
+decls { stmt stmt stmt if ( boolexpr ) then ID = multexpr ; else ID = ID / INTNUM ; } =>
+decls { stmt stmt stmt if ( boolexpr ) then ID = simpleexpr multexprprime ; else ID = ID / INTNUM ; } =>
+decls { stmt stmt stmt if ( boolexpr ) then ID = simpleexpr / simpleexpr multexprprime ; else ID = ID / INTNUM ; } =>
+decls { stmt stmt stmt if ( boolexpr ) then ID = simpleexpr / simpleexpr ; else ID = ID / INTNUM ; } =>
+decls { stmt stmt stmt if ( boolexpr ) then ID = simpleexpr / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt stmt stmt if ( boolexpr ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt stmt stmt if ( arithexpr boolop arithexpr ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt stmt stmt if ( arithexpr boolop multexpr arithexprprime ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt stmt stmt if ( arithexpr boolop multexpr ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt stmt stmt if ( arithexpr boolop simpleexpr multexprprime ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt stmt stmt if ( arithexpr boolop simpleexpr ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt stmt stmt if ( arithexpr boolop ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt stmt stmt if ( arithexpr == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt stmt stmt if ( multexpr arithexprprime == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt stmt stmt if ( multexpr == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt stmt stmt if ( simpleexpr multexprprime == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt stmt stmt if ( simpleexpr == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt stmt stmt if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt stmt assgstmt if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt stmt ID = arithexpr ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt stmt ID = multexpr arithexprprime ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt stmt ID = multexpr ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt stmt ID = simpleexpr multexprprime ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt stmt ID = simpleexpr * simpleexpr multexprprime ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt stmt ID = simpleexpr * simpleexpr ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt stmt ID = simpleexpr * ID ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt stmt ID = ID * ID ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt assgstmt ID = ID * ID ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt ID = arithexpr ; ID = ID * ID ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt ID = multexpr arithexprprime ; ID = ID * ID ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt ID = multexpr ; ID = ID * ID ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt ID = simpleexpr multexprprime ; ID = ID * ID ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt ID = simpleexpr * simpleexpr multexprprime ; ID = ID * ID ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt ID = simpleexpr * simpleexpr ; ID = ID * ID ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt ID = simpleexpr * ID ; ID = ID * ID ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { stmt ID = ID * ID ; ID = ID * ID ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { assgstmt ID = ID * ID ; ID = ID * ID ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { ID = arithexpr ; ID = ID * ID ; ID = ID * ID ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { ID = multexpr arithexprprime ; ID = ID * ID ; ID = ID * ID ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { ID = multexpr + multexpr arithexprprime ; ID = ID * ID ; ID = ID * ID ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { ID = multexpr + multexpr ; ID = ID * ID ; ID = ID * ID ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { ID = multexpr + simpleexpr multexprprime ; ID = ID * ID ; ID = ID * ID ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { ID = multexpr + simpleexpr ; ID = ID * ID ; ID = ID * ID ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { ID = multexpr + INTNUM ; ID = ID * ID ; ID = ID * ID ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { ID = simpleexpr multexprprime + INTNUM ; ID = ID * ID ; ID = ID * ID ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { ID = simpleexpr + INTNUM ; ID = ID * ID ; ID = ID * ID ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decls { ID = ID + INTNUM ; ID = ID * ID ; ID = ID * ID ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decl ; decls { ID = ID + INTNUM ; ID = ID * ID ; ID = ID * ID ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decl ; decl ; decls { ID = ID + INTNUM ; ID = ID * ID ; ID = ID * ID ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decl ; decl ; decl ; decls { ID = ID + INTNUM ; ID = ID * ID ; ID = ID * ID ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decl ; decl ; decl ; { ID = ID + INTNUM ; ID = ID * ID ; ID = ID * ID ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decl ; decl ; real ID = REALNUM ; { ID = ID + INTNUM ; ID = ID * ID ; ID = ID * ID ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+decl ; int ID = INTNUM ; real ID = REALNUM ; { ID = ID + INTNUM ; ID = ID * ID ; ID = ID * ID ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; } =>
+int ID = INTNUM ; int ID = INTNUM ; real ID = REALNUM ; { ID = ID + INTNUM ; ID = ID * ID ; ID = ID * ID ; if ( ID == ID ) then ID = ID / INTNUM ; else ID = ID / INTNUM ; }

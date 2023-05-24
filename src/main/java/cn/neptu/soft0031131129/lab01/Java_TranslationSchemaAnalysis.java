@@ -1,5 +1,7 @@
 package cn.neptu.soft0031131129.lab01;
 
+import com.sun.javafx.css.Declaration;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
@@ -13,6 +15,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.Stack;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Java_TranslationSchemaAnalysis {
@@ -308,6 +311,13 @@ public class Java_TranslationSchemaAnalysis {
         public String left;
         public List<String> right;
         public int dot;
+        public Function<List<ASTNode>, ASTNode> producer;
+
+        public Production(String left, List<String> right, Function<List<ASTNode>, ASTNode> producer) {
+            this.left = left;
+            this.right = right;
+            this.producer = producer;
+        }
 
         public Production(String left, List<String> right, int dot) {
             this.left = left;
@@ -366,50 +376,253 @@ public class Java_TranslationSchemaAnalysis {
         EXPRESSION_STATEMENT,
         EMPTY_STATEMENT,
         EXPRESSION,
-        ASSIGNMENT_EXPRESSION,
+        ASSIGNMENT_STATEMENT,
         BINARY_EXPRESSION,
         UNARY_EXPRESSION,
         VARIABLE_DECLARATION,
         DECLARATIONS,
+        BOOL_OP,
     }
 
-    public static class TreeNode {
+    public static class ASTNode<V> {
         public final NodeType type;
-        Map<String, Object> attributes = new HashMap<>();
 
-        public TreeNode(NodeType type) {
+        public ASTNode(NodeType type) {
             this.type = type;
         }
 
-        public void setAttribute(String key, Object value) {
-            attributes.put(key, value);
+        public V execute(Scope scope) {
+            return null;
         }
-
-        public <T> T getAttribute(String key) {
-            return (T)attributes.get(key);
-        }
-
-        public void execute() {
-
+        public Object value() {
+            return null;
         }
     }
 
-    public static final String PROBLEM_GRAMMAR = "program -> decls compoundstmt\n" + "decls -> decl ; decls | E\n"
-        + "decl -> int ID = INTNUM | real ID = REALNUM | int ID = REALNUM | real ID = INTNUM\n"
-        + "stmt -> ifstmt | assgstmt | compoundstmt\n" + "compoundstmt -> { stmts }\n" + "stmts -> stmt stmts | E\n"
-        + "ifstmt -> if ( boolexpr ) then stmt else stmt\n" + "assgstmt -> ID = arithexpr ;\n"
-        + "boolexpr -> arithexpr boolop arithexpr\n" + "boolop -> < | > | <= | >= | ==\n"
-        + "arithexpr -> multexpr arithexprprime\n"
-        + "arithexprprime -> + multexpr arithexprprime | - multexpr arithexprprime | E\n"
-        + "multexpr -> simpleexpr multexprprime\n"
-        + "multexprprime -> * simpleexpr multexprprime | / simpleexpr multexprprime | E\n"
-        + "simpleexpr -> ID | INTNUM | REALNUM | ( arithexpr )";
+    public static class ValueNode<V> extends ASTNode<V> {
+        public final V value;
+
+        public ValueNode(V value) {
+            super(null);
+            this.value = value;
+        }
+
+        @Override
+        public V execute(Scope scope) {
+            return value;
+        }
+
+        @Override
+        public V value() {
+            return value;
+        }
+    }
+
+    public static class BoolOp extends ASTNode<Integer> {
+        public static final int BOOL_OP_LT = 1;
+        public static final int BOOL_OP_LE = 2;
+        public static final int BOOL_OP_GT = 3;
+        public static final int BOOL_OP_GE = 4;
+        public static final int BOOL_OP_EQ = 5;
+
+        private final int op;
+
+        public BoolOp(int op) {
+            super(NodeType.BOOL_OP);
+            this.op = op;
+        }
+
+        @Override
+        public Integer execute(Scope scope) {
+            return op;
+        }
+    }
+
+    public static class Identifier extends ASTNode<String> {
+
+        private final String id;
+
+        public Identifier(String id) {
+            super(NodeType.IDENTIFIER);
+            this.id = id;
+        }
+
+        @Override
+        public String execute(Scope scope) {
+            return id;
+        }
+    }
+
+    public static class Literal extends ASTNode<Object> {
+        public static final int LITERAL_INT = 1;
+        public static final int LITERAL_REAL = 2;
+        private final Object value;
+        private final int kind;
+
+        public Literal(Object value, int kind) {
+            super(NodeType.LITERAL);
+            this.value = value;
+            this.kind = kind;
+        }
+
+        @Override
+        public Object execute(Scope scope) {
+            return value;
+        }
+
+        public int getKind() {
+            return kind;
+        }
+    }
+
+    public static class BinaryExpression extends ASTNode<Object> {
+        public static final int BINARY_OP_ADD = 1;
+        public static final int BINARY_OP_SUB = 2;
+        public static final int BINARY_OP_MUL = 3;
+        public static final int BINARY_OP_DIV = 4;
+        public static final int BINARY_OP_MOD = 5;
+        public static final int BINARY_OP_LT = 6;
+        public static final int BINARY_OP_LE = 7;
+        public static final int BINARY_OP_GT = 8;
+        public static final int BINARY_OP_GE = 9;
+        public static final int BINARY_OP_EQ = 10;
+        private final int operator;
+        private final ASTNode<?> left;
+        private final ASTNode<?> right;
+
+        public BinaryExpression(int operator, ASTNode<?> left, ASTNode<?> right) {
+            super(NodeType.BINARY_EXPRESSION);
+            this.operator = operator;
+            this.left = left;
+            this.right = right;
+        }
+
+        @Override
+        public Object execute(Scope scope) {
+            return super.execute(scope);
+        }
+    }
+
+    public static class IfStatement extends ASTNode<Object> {
+
+        private final ASTNode<?> test;
+        private final ASTNode<?> consequent;
+        private final ASTNode<?> alternate;
+
+        public IfStatement(ASTNode<?> test, ASTNode<?> consequent, ASTNode<?> alternate) {
+            super(NodeType.IF_STATEMENT);
+            this.test = test;
+            this.consequent = consequent;
+            this.alternate = alternate;
+        }
+
+        @Override
+        public Object execute(Scope scope) {
+            return super.execute(scope);
+        }
+    }
+
+    public static class AssignmentStatement extends ASTNode<Object> {
+
+        private final ASTNode<?> left;
+        private final ASTNode<?> right;
+
+        public AssignmentStatement(ASTNode<?> left, ASTNode<?> right) {
+            super(NodeType.ASSIGNMENT_STATEMENT);
+            this.left = left;
+            this.right = right;
+        }
+
+        @Override
+        public Object execute(Scope scope) {
+            return super.execute(scope);
+        }
+    }
+
+    public static class Statements extends ASTNode<Object> {
+        private final List<ASTNode<?>> statements;
+
+        public Statements(List<ASTNode<?>> statements) {
+            super(NodeType.STATEMENTS);
+            this.statements = statements;
+        }
+
+        @Override
+        public Object execute(Scope scope) {
+            return super.execute(scope);
+        }
+
+    }
+
+    public static class BlockStatement extends ASTNode<Object> {
+        private final ASTNode<?> statements;
+
+        public BlockStatement(ASTNode<?> statements) {
+            super(NodeType.BLOCK_STATEMENT);
+            this.statements = statements;
+        }
+
+        @Override
+        public Object execute(Scope scope) {
+            return super.execute(scope);
+        }
+    }
+
+    public static class VariableDeclaration extends ASTNode<Object> {
+        private final int kind;
+        private final Identifier id;
+        private final ASTNode<?> value;
+
+        public VariableDeclaration(int kind, ASTNode<?> id, ASTNode<?> value) {
+            super(NodeType.VARIABLE_DECLARATION);
+            this.kind = kind;
+            if (id instanceof Identifier) {
+                this.id = (Identifier)id;
+            } else {
+                // 目前来说必须是标识符，当然也可以是成员member.field这类的
+                throw new RuntimeException("id must be Identifier");
+            }
+            this.value = value;
+        }
+
+        @Override
+        public Object execute(Scope scope) {
+            return super.execute(scope);
+        }
+    }
+
+    public static class Declarations extends ASTNode<Object> {
+        private final List<ASTNode<?>> declarations;
+
+        public Declarations(List<ASTNode<?>> declarations) {
+            super(NodeType.DECLARATIONS);
+            this.declarations = declarations;
+        }
+
+        @Override
+        public Object execute(Scope scope) {
+            return super.execute(scope);
+        }
+    }
+
+    public static class Program extends ASTNode<Object> {
+        private final List<ASTNode<?>> body;
+
+        public Program(List<ASTNode<?>> body) {
+            super(NodeType.PROGRAM);
+            this.body = body;
+        }
+
+        @Override
+        public Object execute(Scope scope) {
+            return super.execute(scope);
+        }
+    }
 
     public static class LRAnalyser {
         private static final String AUGMENTED_START = "_program";
         private static final String EPSILON = "E";
         private static final String $ = "$";
-        //        private final Map<String, List<List<String>>> grammar = new HashMap<>();
         private final List<Production> productions = new ArrayList<>();
 
         private final Map<String, Set<String>> closure = new HashMap<>();
@@ -421,7 +634,6 @@ public class Java_TranslationSchemaAnalysis {
         private static final int REDUCE = 3;
         private static final int ACCEPT = 4;
         private static final int GOTO = 5;
-        private static final int RECOVER = 6;
 
         private void tableSet(int state, String symbol, int action, int next) {
             Map<String, Integer> row = table.get(state);
@@ -433,8 +645,8 @@ public class Java_TranslationSchemaAnalysis {
             row.put(symbol, newItem);
         }
 
-        public LRAnalyser(String grammar) {
-            buildGrammar(grammar);
+        public LRAnalyser() {
+            buildGrammar();
             buildStates();
         }
 
@@ -610,69 +822,89 @@ public class Java_TranslationSchemaAnalysis {
             return result;
         }
 
-        String _ = "program -> decls compoundstmt | {type: PROGRAM, body: [$decls, $compoundstmt]}\n"
-            + "decls -> decl ; decls | {type: DECLARATIONS, declarations: [$decl, $...decls.declarations]}\n"
-            + "decls -> E | {type: DECLARATIONS, declarations: []}\n"
-            + "decl -> int ID = INTNUM | {type: VARIABLE_DECLARATION, id: $ID, value: $INTNUM, kind: int}\n"
-            + "decl -> real ID = REALNUM | {type: VARIABLE_DECLARATION, id: $ID, value: $REALNUM, kind: real}\n"
-            + "decl -> int ID = REALNUM | {type: VARIABLE_DECLARATION, id: $ID, value: $REALNUM, kind: int}\n"
-            + "decl -> real ID = INTNUM | {type: VARIABLE_DECLARATION, id: $ID, value: $INTNUM, kind: real}\n"
-            + "stmt -> ifstmt | $ifstmt\n" + "stmt -> assgstmt | $assgstmt\n" + "stmt -> compoundstmt | $compoundstmt\n"
-            + "compoundstmt -> { stmts } | {type: BLOCK_STATEMENT, body: $stmts}\n"
-            + "stmts -> stmt stmts | {type: STATEMENTS, statements: [$stmt, $...stmts.statements]}\n"
-            + "stmts -> E | NULL\n"
-            + "ifstmt -> if ( boolexpr ) then stmt else stmt | {type: IF_STATEMENT, test: $boolexpr, consequent: $stmt, alternate: $stmt}\n"
-            + "assgstmt -> ID = arithexpr ; | {type: ASSIGNMENT_STATEMENT, left: $ID, right: $arithexpr}\n"
-            + "boolexpr -> arithexpr boolop arithexpr | {type: BINARY_EXPRESSION, left: $arithexpr, operator: $boolop, right: $arithexpr}\n"
-            + "boolop -> < | {value: <}\n" + "boolop -> > | {value: >}\n" + "boolop -> <= | {value: <=}\n"
-            + "boolop -> >= | {value: >=}\n" + "boolop -> == | {value: ==}\n"
-            + "arithexpr -> multexpr arithexprprime {type: BINARY_EXPRESSION, left: $multexpr, operator: $arithexprprime.operator, right: $arithexprprime.right}\n"
-            + "arithexprprime -> + multexpr arithexprprime | {left: $multexpr, operator: +, right: $arithexprprime}\n"
-            + "arithexprprime -> - multexpr arithexprprime | {left: $multexpr, operator: -, right: $arithexprprime}\n"
-            + "arithexprprime -> E | {left: NULL, right: NULL}\n"
-            + "multexpr -> simpleexpr multexprprime | {type: BINARY_EXPRESSION, left: $simpleexpr, operator: $multexprprime?.operator, right: $multexprprime?.right}\n"
-            + "multexprprime -> * simpleexpr multexprprime | {left: $simpleexpr, operator: *, right: $multexprprime}\n"
-            + "multexprprime -> / simpleexpr multexprprime | {left: $simpleexpr, operator: /, right: $multexprprime}\n"
-            + "multexprprime -> E | {left: NULL, right: NULL}\n" + "simpleexpr -> ID | {type: IDENTIFIER, value: $ID}\n"
-            + "simpleexpr -> INTNUM | {type: LITERAL, value: $INTNUM, kind: int}\n"
-            + "simpleexpr -> REALNUM | {type: LITERAL, value: $REALNUM, kind: real}\n"
-            + "simpleexpr -> ( arithexpr ) | {type: $arithexpr}";
-
-        private void buildGrammar(String grammar) {
+        private void buildGrammar() {
             productions.add(new Production(AUGMENTED_START, Collections.singletonList("program"), 0));
-            productions.add(new Production("program", Arrays.asList("decls", "compoundstmt"), 0));
-            productions.add(new Production("decls", Arrays.asList("decl", ";", "decls"), 0));
-            productions.add(new Production("decls", Collections.singletonList(EPSILON), 0));
-            productions.add(new Production("decl", Arrays.asList("int", "ID", "=", "INTNUM"), 0));
-            productions.add(new Production("decl", Arrays.asList("real", "ID", "=", "REALNUM"), 0));
-            productions.add(new Production("decl", Arrays.asList("int", "ID", "=", "REALNUM"), 0));
-            productions.add(new Production("decl", Arrays.asList("real", "ID", "=", "INTNUM"), 0));
-            productions.add(new Production("stmt", Collections.singletonList("ifstmt"), 0));
-            productions.add(new Production("stmt", Collections.singletonList("assgstmt"), 0));
-            productions.add(new Production("stmt", Collections.singletonList("compoundstmt"), 0));
-            productions.add(new Production("compoundstmt", Arrays.asList("{", "stmts", "}"), 0));
-            productions.add(new Production("stmts", Arrays.asList("stmt", "stmts"), 0));
-            productions.add(new Production("stmts", Collections.singletonList(EPSILON), 0));
-            productions.add(new Production("ifstmt", Arrays.asList("if", "(", "boolexpr", ")", "then", "stmt", "else", "stmt"), 0));
-            productions.add(new Production("assgstmt", Arrays.asList("ID", "=", "arithexpr", ";"), 0));
-            productions.add(new Production("boolexpr", Arrays.asList("arithexpr", "boolop", "arithexpr"), 0));
-            productions.add(new Production("boolop", Collections.singletonList("<"), 0));
-            productions.add(new Production("boolop", Collections.singletonList(">"), 0));
-            productions.add(new Production("boolop", Collections.singletonList("<="), 0));
-            productions.add(new Production("boolop", Collections.singletonList(">="), 0));
-            productions.add(new Production("boolop", Collections.singletonList("=="), 0));
-            productions.add(new Production("arithexpr", Arrays.asList("multexpr", "arithexprprime"), 0));
-            productions.add(new Production("arithexprprime", Arrays.asList("+", "multexpr", "arithexprprime"), 0));
-            productions.add(new Production("arithexprprime", Arrays.asList("-", "multexpr", "arithexprprime"), 0));
-            productions.add(new Production("arithexprprime", Collections.singletonList(EPSILON), 0));
-            productions.add(new Production("multexpr", Arrays.asList("simpleexpr", "multexprprime"), 0));
-            productions.add(new Production("multexprprime", Arrays.asList("*", "simpleexpr", "multexprprime"), 0));
-            productions.add(new Production("multexprprime", Arrays.asList("/", "simpleexpr", "multexprprime"), 0));
-            productions.add(new Production("multexprprime", Collections.singletonList(EPSILON), 0));
-            productions.add(new Production("simpleexpr", Collections.singletonList("ID"), 0));
-            productions.add(new Production("simpleexpr", Collections.singletonList("INTNUM"), 0));
-            productions.add(new Production("simpleexpr", Collections.singletonList("REALNUM"), 0));
-            productions.add(new Production("simpleexpr", Arrays.asList("(", "arithexpr", ")"), 0));
+            productions.add(new Production("program", Arrays.asList("decls", "compoundstmt"), nodes -> {
+                return new Program(Arrays.asList(nodes.get(0), nodes.get(1)));
+            }));
+            productions.add(new Production("decls", Arrays.asList("decl", ";", "decls"), nodes -> {
+                Declarations declarations = (Declarations) nodes.get(2);
+                declarations.declarations.add(0, nodes.get(0));
+                return declarations;
+            }));
+            productions.add(new Production("decls", Collections.singletonList(EPSILON),
+                nodes -> new Declarations(Collections.emptyList())));
+            productions.add(new Production("decl", Arrays.asList("int", "ID", "=", "INTNUM"),
+                nodes -> new VariableDeclaration(Literal.LITERAL_INT, nodes.get(1), nodes.get(3))));
+            productions.add(new Production("decl", Arrays.asList("real", "ID", "=", "REALNUM"),
+                nodes -> new VariableDeclaration(Literal.LITERAL_REAL, nodes.get(1), nodes.get(3))));
+            productions.add(new Production("decl", Arrays.asList("int", "ID", "=", "REALNUM"),
+                nodes -> new VariableDeclaration(Literal.LITERAL_INT, nodes.get(1), nodes.get(3))));
+            productions.add(new Production("decl", Arrays.asList("real", "ID", "=", "INTNUM"),
+                nodes -> new VariableDeclaration(Literal.LITERAL_REAL, nodes.get(1), nodes.get(3))));
+            productions.add(new Production("stmt", Collections.singletonList("ifstmt"),
+                nodes -> nodes.get(0)));
+            productions.add(new Production("stmt", Collections.singletonList("assgstmt"),
+                nodes -> nodes.get(0)));
+            productions.add(new Production("stmt", Collections.singletonList("compoundstmt"),
+                nodes -> nodes.get(0)));
+            productions.add(new Production("compoundstmt", Arrays.asList("{", "stmts", "}"),
+                nodes -> new BlockStatement(nodes.get(1))));
+            productions.add(new Production("stmts", Arrays.asList("stmt", "stmts"), nodes -> {
+                Statements stmts = (Statements)nodes.get(1);
+                stmts.statements.add(0, nodes.get(0));
+                return stmts;
+            }));
+            productions.add(new Production("stmts", Collections.singletonList(EPSILON),
+                nodes -> new Statements(Collections.emptyList())));
+            productions.add(
+                new Production("ifstmt", Arrays.asList("if", "(", "boolexpr", ")", "then", "stmt", "else", "stmt"),
+                    nodes -> new IfStatement(nodes.get(2), nodes.get(5), nodes.get(7))));
+            productions.add(new Production("assgstmt", Arrays.asList("ID", "=", "arithexpr", ";"),
+                nodes -> new AssignmentStatement(nodes.get(0), nodes.get(2))));
+            productions.add(new Production("boolexpr", Arrays.asList("arithexpr", "boolop", "arithexpr"),
+                nodes -> new BinaryExpression((int)nodes.get(1).value(), nodes.get(0), nodes.get(2))));
+            productions.add(new Production("boolop", Collections.singletonList("<"),
+                nodes -> new ValueNode<>(BinaryExpression.BINARY_OP_LT)));
+            productions.add(new Production("boolop", Collections.singletonList(">"),
+                nodes -> new ValueNode<>(BinaryExpression.BINARY_OP_GT)));
+            productions.add(new Production("boolop", Collections.singletonList("<="),
+                nodes -> new ValueNode<>(BinaryExpression.BINARY_OP_LE)));
+            productions.add(new Production("boolop", Collections.singletonList(">="),
+                nodes -> new ValueNode<>(BinaryExpression.BINARY_OP_GE)));
+            productions.add(new Production("boolop", Collections.singletonList("=="),
+                nodes -> new ValueNode<>(BinaryExpression.BINARY_OP_EQ)));
+            productions.add(new Production("arithexpr", Arrays.asList("multexpr", "arithexprprime"), nodes -> {
+                BinaryExpression right = (BinaryExpression)nodes.get(1);
+                return new BinaryExpression(right.operator, nodes.get(0), right);
+            }));
+            productions.add(new Production("arithexprprime", Arrays.asList("+", "multexpr", "arithexprprime"),
+                nodes -> new BinaryExpression('+', nodes.get(1), nodes.get(2))));
+            productions.add(new Production("arithexprprime", Arrays.asList("-", "multexpr", "arithexprprime"),
+                nodes -> new BinaryExpression('-', nodes.get(1), nodes.get(2))));
+            productions.add(new Production("arithexprprime", Collections.singletonList(EPSILON),
+                nodes -> new BinaryExpression(0, null, null)));
+            productions.add(new Production("multexpr", Arrays.asList("simpleexpr", "multexprprime"), nodes -> {
+                BinaryExpression right = (BinaryExpression)nodes.get(1);
+                return new BinaryExpression(right.operator, nodes.get(0), right);
+            }));
+            productions.add(new Production("multexprprime", Arrays.asList("*", "simpleexpr", "multexprprime"), nodes -> {
+                return new BinaryExpression('*', nodes.get(1), nodes.get(2));
+            }));
+            productions.add(new Production("multexprprime", Arrays.asList("/", "simpleexpr", "multexprprime"), nodes -> {
+                return new BinaryExpression('/', nodes.get(1), nodes.get(2));
+            }));
+            productions.add(new Production("multexprprime", Collections.singletonList(EPSILON),
+                nodes -> new BinaryExpression(0, null, null)));
+            productions.add(new Production("simpleexpr", Collections.singletonList("ID"),
+                nodes -> new Identifier(nodes.get(0).value().toString())));
+            productions.add(new Production("simpleexpr", Collections.singletonList("INTNUM"),
+                nodes -> new Literal(Integer.parseInt(nodes.get(0).value().toString()), Literal.LITERAL_INT)));
+            productions.add(new Production("simpleexpr", Collections.singletonList("REALNUM"),
+                nodes -> new Literal(Double.parseDouble(nodes.get(0).value().toString()), Literal.LITERAL_REAL)));
+            productions.add(new Production("simpleexpr", Arrays.asList("(", "arithexpr", ")"), nodes -> {
+                return nodes.get(1);
+            }));
         }
 
         public List<Production> analysis(List<Token> input) {
@@ -728,7 +960,7 @@ public class Java_TranslationSchemaAnalysis {
 
         public void printResult(List<Production> productions) {
             List<String> output = new ArrayList<>();
-            output.add(productions.get(0).right.get(0));
+            output.add(this.productions.get(0).right.get(0));
             System.out.print(output.get(0) + " ");
             for (int i = productions.size() - 1; i >= 0; i--) {
                 Production production = productions.get(i);

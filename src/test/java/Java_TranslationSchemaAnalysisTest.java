@@ -22,7 +22,7 @@ public class Java_TranslationSchemaAnalysisTest {
         System.setOut(out);
 
         Java_TranslationSchemaAnalysis.LexAnalyser lexAnalyser = new Java_TranslationSchemaAnalysis.LexAnalyser(SYMBOL_DEFINITION);
-        Java_TranslationSchemaAnalysis.LRAnalyser lrAnalyser = new Java_TranslationSchemaAnalysis.LRAnalyser(Java_TranslationSchemaAnalysis.PROBLEM_GRAMMAR);
+        Java_TranslationSchemaAnalysis.LRAnalyser lrAnalyser = new Java_TranslationSchemaAnalysis.LRAnalyser();
         List<Java_TranslationSchemaAnalysis.Production> result = lrAnalyser.analysis(lexAnalyser.analysis(input));
         lrAnalyser.printResult(result);
 
