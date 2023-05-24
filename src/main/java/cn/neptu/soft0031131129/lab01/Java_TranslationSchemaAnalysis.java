@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.Stack;
+import java.util.stream.Collectors;
 
 public class Java_TranslationSchemaAnalysis {
 
@@ -417,7 +418,7 @@ public class Java_TranslationSchemaAnalysis {
         private static final String AUGMENTED_START = "_program";
         private static final String EPSILON = "E";
         private static final String $ = "$";
-        private final Map<String, List<List<String>>> grammar = new HashMap<>();
+//        private final Map<String, List<List<String>>> grammar = new HashMap<>();
         private final List<Production> productions = new ArrayList<>();
 
         private final Map<String, Set<String>> closure = new HashMap<>();
@@ -446,6 +447,14 @@ public class Java_TranslationSchemaAnalysis {
             buildStates();
         }
 
+        private boolean isTerminal(String symbol) {
+            return productions.stream().anyMatch(p -> p.left.equals(symbol));
+        }
+
+        private List<Production> productionLeftEquals(String symbol) {
+            return productions.stream().filter(p -> p.left.equals(symbol)).collect(Collectors.toList());
+        }
+
         private int statesIndexOf(List<Production> prods) {
             for (int i = 0; i < states.size(); i++) {
                 if (states.get(i).containsAll(prods)) {
@@ -457,8 +466,7 @@ public class Java_TranslationSchemaAnalysis {
 
         private void buildStates() {
             List<Production> start = new ArrayList<>();
-            Production
-                p = new Production(AUGMENTED_START, grammar.get(AUGMENTED_START).get(0), 0);
+            Production p = productions.get(0); // 增广文法
             start.add(p);
             states.add(start);
             table.add(new HashMap<>());
@@ -473,8 +481,9 @@ public class Java_TranslationSchemaAnalysis {
                         String nextSymbol = prod.right.get(prod.dot);
                         Set<String> nextClosure = closure(nextSymbol);
                         for (String s : nextClosure) {
-                            for (List<String> strings : grammar.get(s)) {
-                                closure.add(new Production(s, strings, 0));
+                            List<Production> prods = productionLeftEquals(s);
+                            for (Production rightProd : prods) {
+                                closure.add(new Production(s, rightProd.right, 0));
                             }
                         }
                     }
@@ -498,7 +507,7 @@ public class Java_TranslationSchemaAnalysis {
                         table.add(new HashMap<>());
                     }
                     // 非终结符goto，终结符shift
-                    tableSet(i, entry.getKey(), grammar.containsKey(entry.getKey()) ? GOTO : SHIFT, index);
+                    tableSet(i, entry.getKey(), isTerminal(entry.getKey()) ? SHIFT : GOTO, index);
                 }
             }
 
@@ -531,14 +540,14 @@ public class Java_TranslationSchemaAnalysis {
                 return result;
             }
             result = new HashSet<>();
-            List<List<String>> grammar = this.grammar.get(token);
-            if (grammar == null) {
+            List<Production> prods = productionLeftEquals(token);
+            if (prods == null || prods.isEmpty()) {
                 // terminal
                 return result;
             }
             result.add(token);
-            for (List<String> prod : grammar) {
-                String f = prod.get(0);
+            for (Production prod : prods) {
+                String f = prod.right.get(0);
                 if (!token.equals(f)) {
                     result.addAll(closure(f));
                 }
@@ -559,20 +568,19 @@ public class Java_TranslationSchemaAnalysis {
             if (token.equals(AUGMENTED_START)) {
                 result.add($);
             }
-            for (Map.Entry<String, List<List<String>>> entry : grammar.entrySet()) {
-                for (List<String> right : entry.getValue()) {
-                    for (int i = 0; i < right.size(); i++) {
-                        if (token.equals(right.get(i))) {
-                            if (i == right.size() - 1) {
-                                if (!token.equals(entry.getKey())) {
-                                    result.addAll(follow(entry.getKey()));
-                                }
-                            } else {
-                                Set<String> first = first(right.get(i + 1));
-                                result.addAll(first);
-                                if (first.contains(EPSILON)) {
-                                    result.addAll(follow(entry.getKey()));
-                                }
+            for (Production production : productions) {
+                List<String> right = production.right;
+                for (int i = 0; i < right.size(); i++) {
+                    if (token.equals(right.get(i))) {
+                        if (i == right.size() - 1) {
+                            if (!token.equals(production.left)) {
+                                result.addAll(follow(production.left));
+                            }
+                        } else {
+                            Set<String> first = first(right.get(i + 1));
+                            result.addAll(first);
+                            if (first.contains(EPSILON)) {
+                                result.addAll(follow(production.left));
                             }
                         }
                     }
@@ -589,22 +597,24 @@ public class Java_TranslationSchemaAnalysis {
                 return result;
             }
             result = new HashSet<>();
-            List<List<String>> right = grammar.get(token);
-            if (right == null) {
+
+            List<Production> prods = productionLeftEquals(token);
+            if (prods == null || prods.isEmpty()) {
                 // terminal
                 result.add(token);
                 return result;
             }
-            for (List<String> r : right) {
-                for (String f : r) {
-                    if (!token.equals(f)) {
-                        Set<String> first = first(f);
-                        result.addAll(first);
-                        if (!first.contains(EPSILON)) {
-                            break;
+            for (Production prod : prods) {
+                    for (String f : prod.right) {
+                        if (!token.equals(f)) {
+                            Set<String> first = first(f);
+                            result.addAll(first);
+                            if (!first.contains(EPSILON)) {
+                                break;
+                            }
                         }
-                    }
                 }
+
             }
             firsts.put(token, result);
             return result;
@@ -689,7 +699,7 @@ public class Java_TranslationSchemaAnalysis {
 
         public void printResult(List<Production> productions) {
             List<String> output = new ArrayList<>();
-            output.add(grammar.get(AUGMENTED_START).get(0).get(0));
+            output.add(productions.get(0).right.get(0));
             System.out.print(output.get(0) + " ");
             for (int i = productions.size() - 1; i >= 0; i--) {
                 Production production = productions.get(i);
