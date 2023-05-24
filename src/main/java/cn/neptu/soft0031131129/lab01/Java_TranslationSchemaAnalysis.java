@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,20 +32,21 @@ public class Java_TranslationSchemaAnalysis {
         }
     }
 
-    public static final String SYMBOL_DEFINITION = "auto    1\n" + "break    2\n" + "case    3\n" + "char    4\n"
-        + "const    5\n" + "continue    6\n" + "default    7\n" + "do    8\n" + "double    9\n" + "else    10\n"
-        + "enum    11\n" + "extern    12\n" + "float    13\n" + "for    14\n" + "goto    15\n" + "if    16\n"
-        + "int    17\n" + "long    18\n" + "register    19\n" + "return    20\n" + "short    21\n"
-        + "signed    22\n" + "sizeof    23\n" + "static    24\n" + "struct    25\n" + "switch    26\n"
-        + "typedef    27\n" + "union    28\n" + "unsigned    29\n" + "void    30\n" + "volatile    31\n"
-        + "while    32\n" + "-    33\n" + "--    34\n" + "-=    35\n" + "->    36\n" + "!    37\n" + "!=    38\n"
-        + "%    39\n" + "%=    40\n" + "&    41\n" + "&&    42\n" + "&=    43\n" + "(    44\n" + ")    45\n"
-        + "*    46\n" + "*=    47\n" + ",    48\n" + ".    49\n" + "/    50\n" + "/=    51\n" + ":    52\n"
-        + ";    53\n" + "?    54\n" + "[    55\n" + "]    56\n" + "^    57\n" + "^=    58\n" + "{    59\n"
-        + "|    60\n" + "||    61\n" + "|=    62\n" + "}    63\n" + "~    64\n" + "+    65\n" + "++    66\n"
-        + "+=    67\n" + "<    68\n" + "<<    69\n" + "<<=    70\n" + "<=    71\n" + "=    72\n" + "==    73\n"
-        + ">    74\n" + ">=    75\n" + ">>    76\n" + ">>=    77\n" + "\"    78\n" + "_comment    79\n"
-        + "real    80\n" + "ID    81\n" + "INTNUM    82\n" + "REALNUM    83\n" + "then    84\n";
+    public static final String SYMBOL_DEFINITION =
+        "auto    1\n" + "break    2\n" + "case    3\n" + "char    4\n" + "const    5\n" + "continue    6\n"
+            + "default    7\n" + "do    8\n" + "double    9\n" + "else    10\n" + "enum    11\n" + "extern    12\n"
+            + "float    13\n" + "for    14\n" + "goto    15\n" + "if    16\n" + "int    17\n" + "long    18\n"
+            + "register    19\n" + "return    20\n" + "short    21\n" + "signed    22\n" + "sizeof    23\n"
+            + "static    24\n" + "struct    25\n" + "switch    26\n" + "typedef    27\n" + "union    28\n"
+            + "unsigned    29\n" + "void    30\n" + "volatile    31\n" + "while    32\n" + "-    33\n" + "--    34\n"
+            + "-=    35\n" + "->    36\n" + "!    37\n" + "!=    38\n" + "%    39\n" + "%=    40\n" + "&    41\n"
+            + "&&    42\n" + "&=    43\n" + "(    44\n" + ")    45\n" + "*    46\n" + "*=    47\n" + ",    48\n"
+            + ".    49\n" + "/    50\n" + "/=    51\n" + ":    52\n" + ";    53\n" + "?    54\n" + "[    55\n"
+            + "]    56\n" + "^    57\n" + "^=    58\n" + "{    59\n" + "|    60\n" + "||    61\n" + "|=    62\n"
+            + "}    63\n" + "~    64\n" + "+    65\n" + "++    66\n" + "+=    67\n" + "<    68\n" + "<<    69\n"
+            + "<<=    70\n" + "<=    71\n" + "=    72\n" + "==    73\n" + ">    74\n" + ">=    75\n" + ">>    76\n"
+            + ">>=    77\n" + "\"    78\n" + "_comment    79\n" + "real    80\n" + "ID    81\n" + "INTNUM    82\n"
+            + "REALNUM    83\n" + "then    84\n";
 
     public static class LexAnalyser {
 
@@ -63,8 +65,7 @@ public class Java_TranslationSchemaAnalysis {
         private static final String SYMBOL_IDENTIFIER = "ID";
 
         public static void readSymbolDefinition(String symbol) {
-            try (BufferedReader reader = new BufferedReader(
-                new StringReader(symbol))) {
+            try (BufferedReader reader = new BufferedReader(new StringReader(symbol))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     String[] split = line.split(" ");
@@ -106,9 +107,7 @@ public class Java_TranslationSchemaAnalysis {
         private Token analysisIdentifier() {
             StringBuilder sb = new StringBuilder();
 
-            for (char c = prog.charAt(i);
-                 c == '_' || Character.isLetterOrDigit(c);
-                 i++, c = prog.charAt(i)) {
+            for (char c = prog.charAt(i); c == '_' || Character.isLetterOrDigit(c); i++, c = prog.charAt(i)) {
                 sb.append(c);
             }
             String s = sb.toString();
@@ -191,7 +190,7 @@ public class Java_TranslationSchemaAnalysis {
             this.prog = prog;
             this.i = 0;
             this.line = 1;
-            
+
             List<Token> tokens = new ArrayList<>();
             int length = prog.length();
             while (i < length) {
@@ -226,9 +225,8 @@ public class Java_TranslationSchemaAnalysis {
                     }
                 }
                 // binary operator
-                if (c == '+' || c == '-' || c == '*' || c == '/' || c == '%'
-                    || c == '<' || c == '>' || c == '&' || c == '|' || c == '^'
-                    || c == '=') {
+                if (c == '+' || c == '-' || c == '*' || c == '/' || c == '%' || c == '<' || c == '>' || c == '&'
+                    || c == '|' || c == '^' || c == '=') {
                     i++;
                     if (c == '-' && prog.charAt(i) == '>') {
                         tokens.add(new Token(line, "->", "->"));
@@ -269,10 +267,8 @@ public class Java_TranslationSchemaAnalysis {
                     continue;
                 }
                 // delimiter
-                if (c == '(' || c == ')'
-                    || c == '[' || c == ']'
-                    || c == '{' || c == '}'
-                    || c == ',' || c == '.' || c == ';' || c == '?') {
+                if (c == '(' || c == ')' || c == '[' || c == ']' || c == '{' || c == '}' || c == ',' || c == '.'
+                    || c == ';' || c == '?') {
                     tokens.add(new Token(line, String.valueOf(c), String.valueOf(c)));
                     i++;
                     continue;
@@ -307,7 +303,6 @@ public class Java_TranslationSchemaAnalysis {
         }
 
     }
-
 
     public static class Production {
         public String left;
@@ -386,26 +381,22 @@ public class Java_TranslationSchemaAnalysis {
             this.type = type;
         }
 
-        public void setAttribute(String key, Object value){
+        public void setAttribute(String key, Object value) {
             attributes.put(key, value);
         }
-        public <T> T getAttribute(String key){
-            return (T) attributes.get(key);
+
+        public <T> T getAttribute(String key) {
+            return (T)attributes.get(key);
         }
 
-        public void execute(){
+        public void execute() {
 
         }
     }
 
-
-
-    public static final String PROBLEM_GRAMMAR =
-            "program -> decls compoundstmt\n"
-                    + "decls -> decl ; decls | E\n"
+    public static final String PROBLEM_GRAMMAR = "program -> decls compoundstmt\n" + "decls -> decl ; decls | E\n"
         + "decl -> int ID = INTNUM | real ID = REALNUM | int ID = REALNUM | real ID = INTNUM\n"
-        + "stmt -> ifstmt | assgstmt | compoundstmt\n"
-        + "compoundstmt -> { stmts }\n" + "stmts -> stmt stmts | E\n"
+        + "stmt -> ifstmt | assgstmt | compoundstmt\n" + "compoundstmt -> { stmts }\n" + "stmts -> stmt stmts | E\n"
         + "ifstmt -> if ( boolexpr ) then stmt else stmt\n" + "assgstmt -> ID = arithexpr ;\n"
         + "boolexpr -> arithexpr boolop arithexpr\n" + "boolop -> < | > | <= | >= | ==\n"
         + "arithexpr -> multexpr arithexprprime\n"
@@ -418,7 +409,7 @@ public class Java_TranslationSchemaAnalysis {
         private static final String AUGMENTED_START = "_program";
         private static final String EPSILON = "E";
         private static final String $ = "$";
-//        private final Map<String, List<List<String>>> grammar = new HashMap<>();
+        //        private final Map<String, List<List<String>>> grammar = new HashMap<>();
         private final List<Production> productions = new ArrayList<>();
 
         private final Map<String, Set<String>> closure = new HashMap<>();
@@ -448,7 +439,7 @@ public class Java_TranslationSchemaAnalysis {
         }
 
         private boolean isTerminal(String symbol) {
-            return productions.stream().anyMatch(p -> p.left.equals(symbol));
+            return productions.stream().noneMatch(p -> p.left.equals(symbol));
         }
 
         private List<Production> productionLeftEquals(String symbol) {
@@ -515,8 +506,7 @@ public class Java_TranslationSchemaAnalysis {
             for (int i = 0; i < states.size(); i++) {
                 List<Production> state = states.get(i);
                 for (Production prod : state) {
-                    Production
-                        reduceProd = new Production(prod.left, prod.right, 0);
+                    Production reduceProd = new Production(prod.left, prod.right, 0);
                     if (prod.equals(acceptedProd)) {
                         tableSet(i, $, ACCEPT, 0);
                     } else if (prod.dot == prod.right.size()) {
@@ -605,14 +595,14 @@ public class Java_TranslationSchemaAnalysis {
                 return result;
             }
             for (Production prod : prods) {
-                    for (String f : prod.right) {
-                        if (!token.equals(f)) {
-                            Set<String> first = first(f);
-                            result.addAll(first);
-                            if (!first.contains(EPSILON)) {
-                                break;
-                            }
+                for (String f : prod.right) {
+                    if (!token.equals(f)) {
+                        Set<String> first = first(f);
+                        result.addAll(first);
+                        if (!first.contains(EPSILON)) {
+                            break;
                         }
+                    }
                 }
 
             }
@@ -620,30 +610,69 @@ public class Java_TranslationSchemaAnalysis {
             return result;
         }
 
+        String _ = "program -> decls compoundstmt | {type: PROGRAM, body: [$decls, $compoundstmt]}\n"
+            + "decls -> decl ; decls | {type: DECLARATIONS, declarations: [$decl, $...decls.declarations]}\n"
+            + "decls -> E | {type: DECLARATIONS, declarations: []}\n"
+            + "decl -> int ID = INTNUM | {type: VARIABLE_DECLARATION, id: $ID, value: $INTNUM, kind: int}\n"
+            + "decl -> real ID = REALNUM | {type: VARIABLE_DECLARATION, id: $ID, value: $REALNUM, kind: real}\n"
+            + "decl -> int ID = REALNUM | {type: VARIABLE_DECLARATION, id: $ID, value: $REALNUM, kind: int}\n"
+            + "decl -> real ID = INTNUM | {type: VARIABLE_DECLARATION, id: $ID, value: $INTNUM, kind: real}\n"
+            + "stmt -> ifstmt | $ifstmt\n" + "stmt -> assgstmt | $assgstmt\n" + "stmt -> compoundstmt | $compoundstmt\n"
+            + "compoundstmt -> { stmts } | {type: BLOCK_STATEMENT, body: $stmts}\n"
+            + "stmts -> stmt stmts | {type: STATEMENTS, statements: [$stmt, $...stmts.statements]}\n"
+            + "stmts -> E | NULL\n"
+            + "ifstmt -> if ( boolexpr ) then stmt else stmt | {type: IF_STATEMENT, test: $boolexpr, consequent: $stmt, alternate: $stmt}\n"
+            + "assgstmt -> ID = arithexpr ; | {type: ASSIGNMENT_STATEMENT, left: $ID, right: $arithexpr}\n"
+            + "boolexpr -> arithexpr boolop arithexpr | {type: BINARY_EXPRESSION, left: $arithexpr, operator: $boolop, right: $arithexpr}\n"
+            + "boolop -> < | {value: <}\n" + "boolop -> > | {value: >}\n" + "boolop -> <= | {value: <=}\n"
+            + "boolop -> >= | {value: >=}\n" + "boolop -> == | {value: ==}\n"
+            + "arithexpr -> multexpr arithexprprime {type: BINARY_EXPRESSION, left: $multexpr, operator: $arithexprprime.operator, right: $arithexprprime.right}\n"
+            + "arithexprprime -> + multexpr arithexprprime | {left: $multexpr, operator: +, right: $arithexprprime}\n"
+            + "arithexprprime -> - multexpr arithexprprime | {left: $multexpr, operator: -, right: $arithexprprime}\n"
+            + "arithexprprime -> E | {left: NULL, right: NULL}\n"
+            + "multexpr -> simpleexpr multexprprime | {type: BINARY_EXPRESSION, left: $simpleexpr, operator: $multexprprime?.operator, right: $multexprprime?.right}\n"
+            + "multexprprime -> * simpleexpr multexprprime | {left: $simpleexpr, operator: *, right: $multexprprime}\n"
+            + "multexprprime -> / simpleexpr multexprprime | {left: $simpleexpr, operator: /, right: $multexprprime}\n"
+            + "multexprprime -> E | {left: NULL, right: NULL}\n" + "simpleexpr -> ID | {type: IDENTIFIER, value: $ID}\n"
+            + "simpleexpr -> INTNUM | {type: LITERAL, value: $INTNUM, kind: int}\n"
+            + "simpleexpr -> REALNUM | {type: LITERAL, value: $REALNUM, kind: real}\n"
+            + "simpleexpr -> ( arithexpr ) | {type: $arithexpr}";
+
         private void buildGrammar(String grammar) {
-            String[] lines = grammar.split("\n");
-            for (String line : lines) {
-                int i = line.indexOf("->");
-                String left = line.substring(0, i).trim();
-                String right = line.substring(i + 2).trim();
-                String[] rights = right.split("\\|");
-                List<List<String>> rightList = new ArrayList<>();
-                for (String r : rights) {
-                    List<String> symbols = new ArrayList<>();
-                    String[] symbolsArray = r.trim().split("\\s+");
-                    for (String s : symbolsArray) {
-                        if (s.length() > 0) {
-                            symbols.add(s);
-                        }
-                    }
-                    rightList.add(symbols);
-                }
-                if (this.grammar.isEmpty()) {
-                    // 增广文法
-                    this.grammar.put(AUGMENTED_START, Collections.singletonList(Collections.singletonList(left)));
-                }
-                this.grammar.put(left, rightList);
-            }
+            productions.add(new Production(AUGMENTED_START, Collections.singletonList("program"), 0));
+            productions.add(new Production("program", Arrays.asList("decls", "compoundstmt"), 0));
+            productions.add(new Production("decls", Arrays.asList("decl", ";", "decls"), 0));
+            productions.add(new Production("decls", Collections.singletonList(EPSILON), 0));
+            productions.add(new Production("decl", Arrays.asList("int", "ID", "=", "INTNUM"), 0));
+            productions.add(new Production("decl", Arrays.asList("real", "ID", "=", "REALNUM"), 0));
+            productions.add(new Production("decl", Arrays.asList("int", "ID", "=", "REALNUM"), 0));
+            productions.add(new Production("decl", Arrays.asList("real", "ID", "=", "INTNUM"), 0));
+            productions.add(new Production("stmt", Collections.singletonList("ifstmt"), 0));
+            productions.add(new Production("stmt", Collections.singletonList("assgstmt"), 0));
+            productions.add(new Production("stmt", Collections.singletonList("compoundstmt"), 0));
+            productions.add(new Production("compoundstmt", Arrays.asList("{", "stmts", "}"), 0));
+            productions.add(new Production("stmts", Arrays.asList("stmt", "stmts"), 0));
+            productions.add(new Production("stmts", Collections.singletonList(EPSILON), 0));
+            productions.add(new Production("ifstmt", Arrays.asList("if", "(", "boolexpr", ")", "then", "stmt", "else", "stmt"), 0));
+            productions.add(new Production("assgstmt", Arrays.asList("ID", "=", "arithexpr", ";"), 0));
+            productions.add(new Production("boolexpr", Arrays.asList("arithexpr", "boolop", "arithexpr"), 0));
+            productions.add(new Production("boolop", Collections.singletonList("<"), 0));
+            productions.add(new Production("boolop", Collections.singletonList(">"), 0));
+            productions.add(new Production("boolop", Collections.singletonList("<="), 0));
+            productions.add(new Production("boolop", Collections.singletonList(">="), 0));
+            productions.add(new Production("boolop", Collections.singletonList("=="), 0));
+            productions.add(new Production("arithexpr", Arrays.asList("multexpr", "arithexprprime"), 0));
+            productions.add(new Production("arithexprprime", Arrays.asList("+", "multexpr", "arithexprprime"), 0));
+            productions.add(new Production("arithexprprime", Arrays.asList("-", "multexpr", "arithexprprime"), 0));
+            productions.add(new Production("arithexprprime", Collections.singletonList(EPSILON), 0));
+            productions.add(new Production("multexpr", Arrays.asList("simpleexpr", "multexprprime"), 0));
+            productions.add(new Production("multexprprime", Arrays.asList("*", "simpleexpr", "multexprprime"), 0));
+            productions.add(new Production("multexprprime", Arrays.asList("/", "simpleexpr", "multexprprime"), 0));
+            productions.add(new Production("multexprprime", Collections.singletonList(EPSILON), 0));
+            productions.add(new Production("simpleexpr", Collections.singletonList("ID"), 0));
+            productions.add(new Production("simpleexpr", Collections.singletonList("INTNUM"), 0));
+            productions.add(new Production("simpleexpr", Collections.singletonList("REALNUM"), 0));
+            productions.add(new Production("simpleexpr", Arrays.asList("(", "arithexpr", ")"), 0));
         }
 
         public List<Production> analysis(List<Token> input) {
