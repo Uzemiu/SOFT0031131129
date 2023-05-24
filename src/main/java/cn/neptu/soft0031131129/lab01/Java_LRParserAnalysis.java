@@ -423,7 +423,7 @@ public class Java_LRParserAnalysis {
                         break;
                     }
                 }
-                System.out.println("=>");
+                System.out.println("=> ");
                 for (String item : output) {
                     System.out.print(item + " ");
                 }
@@ -437,7 +437,7 @@ public class Java_LRParserAnalysis {
 
         Analyser analyser = new Analyser(PROBLEM_GRAMMAR);
         String s = "{\n" + "ID = NUM ;\n" + "}";
-        List<Production> result = analyser.analysis(readProg(new StringReader(s)));
+        List<Production> result = analyser.analysis(readProg());
         analyser.printResult(result);
 
     }
