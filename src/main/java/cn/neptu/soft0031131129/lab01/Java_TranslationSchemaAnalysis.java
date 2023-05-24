@@ -16,6 +16,9 @@ import java.util.Stack;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static cn.neptu.soft0031131129.lab01.Java_TranslationSchemaAnalysis.Variable.TYPE_INT;
+import static cn.neptu.soft0031131129.lab01.Java_TranslationSchemaAnalysis.Variable.TYPE_REAL;
+
 public class Java_TranslationSchemaAnalysis {
 
     /**
@@ -385,6 +388,7 @@ public class Java_TranslationSchemaAnalysis {
 
     public static class ASTNode<V> {
         public final NodeType type;
+        private int line;
 
         public ASTNode(NodeType type) {
             this.type = type;
@@ -393,8 +397,17 @@ public class Java_TranslationSchemaAnalysis {
         public V execute(Scope scope) {
             return null;
         }
+
         public Object value() {
             return null;
+        }
+
+        public int getLine() {
+            return line;
+        }
+
+        public void setLine(int line) {
+            this.line = line;
         }
 
         @Override
@@ -427,27 +440,7 @@ public class Java_TranslationSchemaAnalysis {
         }
     }
 
-    public static class BoolOp extends ASTNode<Integer> {
-        public static final int BOOL_OP_LT = 1;
-        public static final int BOOL_OP_LE = 2;
-        public static final int BOOL_OP_GT = 3;
-        public static final int BOOL_OP_GE = 4;
-        public static final int BOOL_OP_EQ = 5;
-
-        private final int op;
-
-        public BoolOp(int op) {
-            super(NodeType.BOOL_OP);
-            this.op = op;
-        }
-
-        @Override
-        public Integer execute(Scope scope) {
-            return op;
-        }
-    }
-
-    public static class Identifier extends ASTNode<String> {
+    public static class Identifier extends ASTNode<Object> {
 
         private final String id;
 
@@ -457,21 +450,28 @@ public class Java_TranslationSchemaAnalysis {
         }
 
         @Override
-        public String execute(Scope scope) {
+        public Object execute(Scope scope) {
+            Variable variable = scope.get(id);
+            if (variable == null) {
+                throw new RuntimeException("variable not found: " + id);
+            }
+            return variable.getValue();
+        }
+
+        @Override
+        public String value() {
             return id;
         }
     }
 
     public static class Literal extends ASTNode<Object> {
-        public static final int LITERAL_INT = 1;
-        public static final int LITERAL_REAL = 2;
         private final Object value;
-        private final int kind;
+        private final int type;
 
-        public Literal(Object value, int kind) {
+        public Literal(Object value, int type) {
             super(NodeType.LITERAL);
             this.value = value;
-            this.kind = kind;
+            this.type = type;
         }
 
         @Override
@@ -479,8 +479,8 @@ public class Java_TranslationSchemaAnalysis {
             return value;
         }
 
-        public int getKind() {
-            return kind;
+        public int getType() {
+            return type;
         }
     }
 
@@ -508,26 +508,97 @@ public class Java_TranslationSchemaAnalysis {
 
         @Override
         public Object execute(Scope scope) {
-            return super.execute(scope);
+            Number leftValue = (Number)left.execute(scope);
+            if (right == null) {
+                return leftValue;
+            }
+            Number rightValue = (Number)right.execute(scope);
+            if (operator >= BINARY_OP_ADD && operator <= BINARY_OP_MOD) {
+                return executeArith(leftValue, rightValue);
+            } else {
+                return executeBool(leftValue, rightValue);
+            }
+        }
+
+        private Number executeArith(Number left, Number right) {
+            boolean hasDouble = left instanceof Double || right instanceof Double;
+            boolean hasFloat = left instanceof Float || right instanceof Float;
+            boolean hasLong = left instanceof Long || right instanceof Long;
+
+            switch (operator) {
+                case BINARY_OP_ADD:
+                    if (hasDouble || hasFloat)
+                        return left.doubleValue() + right.doubleValue();
+                    return left.longValue() + right.longValue();
+                case BINARY_OP_SUB:
+                    if (hasDouble || hasFloat)
+                        return left.doubleValue() - right.doubleValue();
+                    return left.longValue() - right.longValue();
+                case BINARY_OP_MUL:
+                    if (hasDouble || hasFloat)
+                        return left.doubleValue() * right.doubleValue();
+                    return left.longValue() * right.longValue();
+                case BINARY_OP_DIV:
+                    if (right.doubleValue() == 0) {
+                        throw new IllegalArgumentException(String.format("error message:line %d,%s\n", getLine(), "division by zero"));
+                    }
+                    if (hasDouble || hasFloat)
+                        return left.doubleValue() / right.doubleValue();
+                    return left.longValue() / right.longValue();
+                case BINARY_OP_MOD:
+                    if (right.doubleValue() == 0) {
+                        throw new IllegalArgumentException(String.format("error message:line %d,%s\n", getLine(), "division by zero"));
+                    }
+                    if (hasDouble || hasFloat)
+                        return left.doubleValue() % right.doubleValue();
+                    return left.longValue() % right.longValue();
+                default:
+                    throw new IllegalArgumentException("Unknown operator " + operator);
+            }
+        }
+
+        private boolean executeBool(Number left, Number right) {
+            switch (operator) {
+                case BINARY_OP_LT:
+                    return left.doubleValue() < right.doubleValue();
+                case BINARY_OP_LE:
+                    return left.doubleValue() <= right.doubleValue();
+                case BINARY_OP_GT:
+                    return left.doubleValue() > right.doubleValue();
+                case BINARY_OP_GE:
+                    return left.doubleValue() >= right.doubleValue();
+                case BINARY_OP_EQ:
+                    return left.doubleValue() == right.doubleValue();
+                default:
+                    throw new IllegalArgumentException("Unknown operator " + operator);
+            }
         }
     }
 
     public static class IfStatement extends ASTNode<Object> {
 
-        private final ASTNode<?> test;
+        private final BinaryExpression test;
         private final ASTNode<?> consequent;
         private final ASTNode<?> alternate;
 
         public IfStatement(ASTNode<?> test, ASTNode<?> consequent, ASTNode<?> alternate) {
             super(NodeType.IF_STATEMENT);
-            this.test = test;
+            if (!(test instanceof BinaryExpression)) {
+                throw new IllegalArgumentException("test must be a BinaryExpression");
+            }
+            this.test = (BinaryExpression)test;
             this.consequent = consequent;
             this.alternate = alternate;
         }
 
         @Override
         public Object execute(Scope scope) {
-            return super.execute(scope);
+            Object result = test.execute(scope);
+            if (result instanceof Boolean && Boolean.TRUE.equals(result)) {
+                return consequent.execute(scope);
+            } else {
+                return alternate.execute(scope);
+            }
         }
     }
 
@@ -544,7 +615,27 @@ public class Java_TranslationSchemaAnalysis {
 
         @Override
         public Object execute(Scope scope) {
-            return super.execute(scope);
+            String id = left.value().toString();
+            Variable variable = scope.get(id);
+            if (variable == null) {
+                throw new IllegalArgumentException("Unknown variable " + id);
+            }
+            Object value = right.execute(scope);
+            switch (variable.getType()) {
+                case Variable.TYPE_INT:
+                    if (!(value instanceof Number)) {
+                        throw new IllegalArgumentException("Expected a number");
+                    }
+                    variable.setValue(((Number)value).intValue());
+                    break;
+                case Variable.TYPE_REAL:
+                    if (!(value instanceof Number)) {
+                        throw new IllegalArgumentException("Expected a number");
+                    }
+                    variable.setValue(((Number)value).doubleValue());
+                    break;
+            }
+            return value;
         }
     }
 
@@ -558,7 +649,15 @@ public class Java_TranslationSchemaAnalysis {
 
         @Override
         public Object execute(Scope scope) {
-            return super.execute(scope);
+            Object result = null;
+            for (ASTNode<?> statement : statements) {
+                try {
+                    result = statement.execute(scope);
+                } catch (Exception e) {
+                    System.out.printf(e.getMessage());
+                }
+            }
+            return result;
         }
 
     }
@@ -573,30 +672,53 @@ public class Java_TranslationSchemaAnalysis {
 
         @Override
         public Object execute(Scope scope) {
-            return super.execute(scope);
+            return statements.execute(scope);
         }
     }
 
     public static class VariableDeclaration extends ASTNode<Object> {
-        private final int kind;
+        private final int type;
         private final Identifier id;
         private final ASTNode<?> value;
 
-        public VariableDeclaration(int kind, ASTNode<?> id, ASTNode<?> value) {
+        public VariableDeclaration(int type, ASTNode<?> id, ASTNode<?> value) {
             super(NodeType.VARIABLE_DECLARATION);
-            this.kind = kind;
-            if (id instanceof Identifier) {
-                this.id = (Identifier)id;
-            } else {
+            if (!(id instanceof Identifier)) {
                 // 目前来说必须是标识符，当然也可以是成员member.field这类的
                 throw new RuntimeException("id must be Identifier");
             }
+            this.type = type;
+            this.id = (Identifier)id;
             this.value = value;
         }
 
         @Override
         public Object execute(Scope scope) {
-            return super.execute(scope);
+            if (scope.get(id.value()) != null) {
+                throw new IllegalArgumentException("Variable " + id.value() + " already exists");
+            }
+            Object result = value.execute(scope);
+            Variable variable = new Variable(id.value(), result, 0, type);
+
+            switch (type) {
+                case Variable.TYPE_INT:
+                    if (!(result instanceof Number)) {
+                        throw new IllegalArgumentException("Expected a number");
+                    }
+                    if (result instanceof Double || result instanceof Float) {
+                        variable.setValue(((Number)result).intValue());
+                        System.out.printf("error message:line %d,%s\n", getLine(), "realnum can not be translated into int type");;
+                    }
+                    break;
+                case Variable.TYPE_REAL:
+                    if (!(result instanceof Number)) {
+                        throw new IllegalArgumentException("Expected a number");
+                    }
+                    variable.setValue(((Number)result).doubleValue());
+                    break;
+            }
+            scope.set(variable);
+            return result;
         }
     }
 
@@ -610,7 +732,15 @@ public class Java_TranslationSchemaAnalysis {
 
         @Override
         public Object execute(Scope scope) {
-            return super.execute(scope);
+            Object result = null;
+            for (ASTNode<?> declaration : declarations) {
+                try {
+                    result = declaration.execute(scope);
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+            }
+            return result;
         }
     }
 
@@ -624,7 +754,11 @@ public class Java_TranslationSchemaAnalysis {
 
         @Override
         public Object execute(Scope scope) {
-            return super.execute(scope);
+            Object result = null;
+            for (ASTNode<?> node : body) {
+                result = node.execute(scope);
+            }
+            return result;
         }
     }
 
@@ -837,26 +971,23 @@ public class Java_TranslationSchemaAnalysis {
                 return new Program(Arrays.asList(nodes.get(0), nodes.get(1)));
             }));
             productions.add(new Production("decls", Arrays.asList("decl", ";", "decls"), nodes -> {
-                Declarations declarations = (Declarations) nodes.get(2);
+                Declarations declarations = (Declarations)nodes.get(2);
                 declarations.declarations.add(0, nodes.get(0));
                 return declarations;
             }));
             productions.add(new Production("decls", Collections.singletonList(EPSILON),
                 nodes -> new Declarations(new ArrayList<>())));
             productions.add(new Production("decl", Arrays.asList("int", "ID", "=", "INTNUM"),
-                nodes -> new VariableDeclaration(Literal.LITERAL_INT, nodes.get(1), nodes.get(3))));
+                nodes -> new VariableDeclaration(TYPE_INT, nodes.get(1), nodes.get(3))));
             productions.add(new Production("decl", Arrays.asList("real", "ID", "=", "REALNUM"),
-                nodes -> new VariableDeclaration(Literal.LITERAL_REAL, nodes.get(1), nodes.get(3))));
+                nodes -> new VariableDeclaration(TYPE_REAL, nodes.get(1), nodes.get(3))));
             productions.add(new Production("decl", Arrays.asList("int", "ID", "=", "REALNUM"),
-                nodes -> new VariableDeclaration(Literal.LITERAL_INT, nodes.get(1), nodes.get(3))));
+                nodes -> new VariableDeclaration(TYPE_INT, nodes.get(1), nodes.get(3))));
             productions.add(new Production("decl", Arrays.asList("real", "ID", "=", "INTNUM"),
-                nodes -> new VariableDeclaration(Literal.LITERAL_REAL, nodes.get(1), nodes.get(3))));
-            productions.add(new Production("stmt", Collections.singletonList("ifstmt"),
-                nodes -> nodes.get(0)));
-            productions.add(new Production("stmt", Collections.singletonList("assgstmt"),
-                nodes -> nodes.get(0)));
-            productions.add(new Production("stmt", Collections.singletonList("compoundstmt"),
-                nodes -> nodes.get(0)));
+                nodes -> new VariableDeclaration(TYPE_REAL, nodes.get(1), nodes.get(3))));
+            productions.add(new Production("stmt", Collections.singletonList("ifstmt"), nodes -> nodes.get(0)));
+            productions.add(new Production("stmt", Collections.singletonList("assgstmt"), nodes -> nodes.get(0)));
+            productions.add(new Production("stmt", Collections.singletonList("compoundstmt"), nodes -> nodes.get(0)));
             productions.add(new Production("compoundstmt", Arrays.asList("{", "stmts", "}"),
                 nodes -> new BlockStatement(nodes.get(1))));
             productions.add(new Production("stmts", Arrays.asList("stmt", "stmts"), nodes -> {
@@ -885,38 +1016,65 @@ public class Java_TranslationSchemaAnalysis {
                 nodes -> new ValueNode<>(BinaryExpression.BINARY_OP_EQ)));
             productions.add(new Production("arithexpr", Arrays.asList("multexpr", "arithexprprime"), nodes -> {
                 BinaryExpression right = (BinaryExpression)nodes.get(1);
+                if (right == null) {
+                    return nodes.get(0);
+                }
                 return new BinaryExpression(right.operator, nodes.get(0), right);
             }));
-            productions.add(new Production("arithexprprime", Arrays.asList("+", "multexpr", "arithexprprime"),
-                nodes -> new BinaryExpression('+', nodes.get(1), nodes.get(2))));
+            productions.add(new Production("arithexprprime", Arrays.asList("+", "multexpr", "arithexprprime"), nodes -> {
+                return new BinaryExpression(BinaryExpression.BINARY_OP_ADD, nodes.get(1), nodes.get(2));
+            }));
             productions.add(new Production("arithexprprime", Arrays.asList("-", "multexpr", "arithexprprime"),
-                nodes -> new BinaryExpression('-', nodes.get(1), nodes.get(2))));
+                nodes -> new BinaryExpression(BinaryExpression.BINARY_OP_SUB, nodes.get(1), nodes.get(2))));
             productions.add(new Production("arithexprprime", Collections.singletonList(EPSILON),
-                nodes -> new BinaryExpression(0, null, null)));
+                nodes -> null));
             productions.add(new Production("multexpr", Arrays.asList("simpleexpr", "multexprprime"), nodes -> {
                 BinaryExpression right = (BinaryExpression)nodes.get(1);
+                if (right == null) {
+                    return nodes.get(0);
+                }
                 return new BinaryExpression(right.operator, nodes.get(0), right);
             }));
-            productions.add(new Production("multexprprime", Arrays.asList("*", "simpleexpr", "multexprprime"), nodes -> {
-                return new BinaryExpression('*', nodes.get(1), nodes.get(2));
-            }));
-            productions.add(new Production("multexprprime", Arrays.asList("/", "simpleexpr", "multexprprime"), nodes -> {
-                return new BinaryExpression('/', nodes.get(1), nodes.get(2));
-            }));
+            productions.add(
+                new Production("multexprprime", Arrays.asList("*", "simpleexpr", "multexprprime"), nodes -> {
+                    return new BinaryExpression(BinaryExpression.BINARY_OP_MUL, nodes.get(1), nodes.get(2));
+                }));
+            productions.add(
+                new Production("multexprprime", Arrays.asList("/", "simpleexpr", "multexprprime"), nodes -> {
+                    return new BinaryExpression(BinaryExpression.BINARY_OP_DIV, nodes.get(1), nodes.get(2));
+                }));
             productions.add(new Production("multexprprime", Collections.singletonList(EPSILON),
-                nodes -> new BinaryExpression(0, null, null)));
-            productions.add(new Production("simpleexpr", Collections.singletonList("ID"),
-                nodes -> nodes.get(0)));
-            productions.add(new Production("simpleexpr", Collections.singletonList("INTNUM"),
-                nodes -> nodes.get(0)));
-            productions.add(new Production("simpleexpr", Collections.singletonList("REALNUM"),
-                nodes -> nodes.get(0)));
+                nodes -> null));
+            productions.add(new Production("simpleexpr", Collections.singletonList("ID"), nodes -> nodes.get(0)));
+            productions.add(new Production("simpleexpr", Collections.singletonList("INTNUM"), nodes -> nodes.get(0)));
+            productions.add(new Production("simpleexpr", Collections.singletonList("REALNUM"), nodes -> nodes.get(0)));
             productions.add(new Production("simpleexpr", Arrays.asList("(", "arithexpr", ")"), nodes -> {
                 return nodes.get(1);
             }));
         }
 
-        public List<Production> analysis(List<Token> input) {
+        private ASTNode<?> fromToken(Token token) {
+            ASTNode<?> result = null;
+            String symbol = token.symbol;
+            switch (symbol) {
+                case "ID":
+                    result = new Identifier(token.value);
+                    break;
+                case "INTNUM":
+                    result = new Literal(Integer.parseInt(token.value), TYPE_INT);
+                    break;
+                case "REALNUM":
+                    result = new Literal(Double.parseDouble(token.value), TYPE_REAL);
+                    break;
+                default:
+                    result = new ValueNode<>(symbol);
+                    break;
+            }
+            result.setLine(token.line);
+            return result;
+        }
+
+        public AnalysisResult analysis(List<Token> input) {
             List<Production> result = new ArrayList<>();
             input.add(new Token(-1, $, $));
             Stack<Integer> stateStack = new Stack<>();
@@ -939,20 +1097,7 @@ public class Java_TranslationSchemaAnalysis {
                     int next = item % ACTION_BASE;
                     if (action == SHIFT) {
                         stateStack.push(next);
-                        switch (symbol) {
-                            case "ID":
-                                nodeStack.push(new Identifier(symbol));
-                                break;
-                            case "INTNUM":
-                                nodeStack.push(new Literal(Integer.parseInt(token.value), Literal.LITERAL_INT));
-                                break;
-                            case "REALNUM":
-                                nodeStack.push(new Literal(Double.parseDouble(token.value), Literal.LITERAL_REAL));
-                                break;
-                            default:
-                                nodeStack.push(new ValueNode<>(symbol));
-                                break;
-                        }
+                        nodeStack.push(fromToken(token));
                         continue;
                     }
                 }
@@ -962,20 +1107,7 @@ public class Java_TranslationSchemaAnalysis {
                     case SHIFT:
                         i++;
                         stateStack.push(next);
-                        switch (symbol) {
-                            case "ID":
-                                nodeStack.push(new Identifier(symbol));
-                                break;
-                            case "INTNUM":
-                                nodeStack.push(new Literal(Integer.parseInt(token.value), Literal.LITERAL_INT));
-                                break;
-                            case "REALNUM":
-                                nodeStack.push(new Literal(Double.parseDouble(token.value), Literal.LITERAL_REAL));
-                                break;
-                            default:
-                                nodeStack.push(new ValueNode<>(symbol));
-                                break;
-                        }
+                        nodeStack.push(fromToken(token));
                         break;
                     case REDUCE:
                         Production reduceProd = productions.get(next);
@@ -983,14 +1115,18 @@ public class Java_TranslationSchemaAnalysis {
                         for (int n = reduceProd.right.size(); n > 0; n--) {
                             stateStack.pop();
                             if (nodeStack.empty()) {
-                                int sdad =  23;
+                                int sdad = 23;
                             }
                             nodes.add(0, nodeStack.pop());
                         }
                         int t = stateStack.peek();
                         int go = table.get(t).get(reduceProd.left);
                         stateStack.push(go % ACTION_BASE);
-                        nodeStack.push(reduceProd.mergeFunc.apply(nodes));
+                        ASTNode<?> newNode = reduceProd.mergeFunc.apply(nodes);
+                        if (newNode != null){
+                            newNode.setLine(token.line);
+                        }
+                        nodeStack.push(newNode);
 
                         result.add(reduceProd);
                         break;
@@ -1000,7 +1136,7 @@ public class Java_TranslationSchemaAnalysis {
                     default:
                 }
             }
-            return result;
+            return new AnalysisResult(result, nodeStack.pop());
         }
 
         public void printResult(List<Production> productions) {
@@ -1030,9 +1166,80 @@ public class Java_TranslationSchemaAnalysis {
         }
     }
 
+    public static class AnalysisResult {
+        public List<Production> productions;
+        public ASTNode<?> root;
+
+        public AnalysisResult(List<Production> productions, ASTNode<?> root) {
+            this.productions = productions;
+            this.root = root;
+        }
+    }
+
+    public static class Variable {
+
+        public static final int TYPE_INT = 1;
+        public static final int TYPE_REAL = 2;
+
+        private final String name;
+
+        private Object value;
+
+        private final int kind;
+
+        private final int type;
+
+        public Variable(String name, Object value, int kind, int type) {
+            this.name = name;
+            this.value = value;
+            this.kind = kind;
+            this.type = type;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setValue(Object value) {
+            this.value = value;
+        }
+        public Object getValue() {
+            return value;
+        }
+
+        public int getKind() {
+            return kind;
+        }
+
+        public int getType() {
+            return type;
+        }
+    }
+
     public static class Scope {
 
-        private final Map<String, Integer> variables = new HashMap<>();
+        private final Map<String, Variable> variables = new HashMap<>();
+
+        private final Scope parent;
+
+        public Scope(){
+            this(null);
+        }
+        public Scope(Scope parent) {
+            this.parent = parent;
+        }
+
+        public void set(Variable variable) {
+            variables.put(variable.getName(), variable);
+        }
+
+        public Variable get(String name) {
+            Variable variable = variables.get(name);
+            if (variable == null && parent != null) {
+                return parent.get(name);
+            }
+            return variable;
+        }
     }
 
     public static void main(String[] args) {

@@ -6,7 +6,6 @@ import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.List;
 
 import static cn.neptu.soft0031131129.lab01.Java_TranslationSchemaAnalysis.SYMBOL_DEFINITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -23,8 +22,16 @@ public class Java_TranslationSchemaAnalysisTest {
 
         Java_TranslationSchemaAnalysis.LexAnalyser lexAnalyser = new Java_TranslationSchemaAnalysis.LexAnalyser(SYMBOL_DEFINITION);
         Java_TranslationSchemaAnalysis.LRAnalyser lrAnalyser = new Java_TranslationSchemaAnalysis.LRAnalyser();
-        List<Java_TranslationSchemaAnalysis.Production> result = lrAnalyser.analysis(lexAnalyser.analysis(input));
-        lrAnalyser.printResult(result);
+        Java_TranslationSchemaAnalysis.AnalysisResult result = lrAnalyser.analysis(lexAnalyser.analysis(input));
+        Java_TranslationSchemaAnalysis.Scope scope = new Java_TranslationSchemaAnalysis.Scope();
+        try {
+            result.root.execute(scope);
+            for (String s : new String[] {"a", "b", "c"}) {
+                System.out.println(s + ": " + scope.get(s).getValue());
+            }
+        } catch (Exception e) {
+
+        }
 
         String actual = baos.toString();
         String expected = Utils.readProg("trans/out" + i + ".txt").toString();
