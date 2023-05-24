@@ -1,7 +1,5 @@
 package cn.neptu.soft0031131129.lab01;
 
-import com.sun.javafx.css.Declaration;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
@@ -311,12 +309,12 @@ public class Java_TranslationSchemaAnalysis {
         public String left;
         public List<String> right;
         public int dot;
-        public Function<List<ASTNode>, ASTNode> producer;
+        public Function<List<ASTNode<?>>, ASTNode<?>> mergeFunc;
 
-        public Production(String left, List<String> right, Function<List<ASTNode>, ASTNode> producer) {
+        public Production(String left, List<String> right, Function<List<ASTNode<?>>, ASTNode<?>> mergeFunc) {
             this.left = left;
             this.right = right;
-            this.producer = producer;
+            this.mergeFunc = mergeFunc;
         }
 
         public Production(String left, List<String> right, int dot) {
@@ -382,6 +380,7 @@ public class Java_TranslationSchemaAnalysis {
         VARIABLE_DECLARATION,
         DECLARATIONS,
         BOOL_OP,
+        VALUE_NODE,
     }
 
     public static class ASTNode<V> {
@@ -397,13 +396,18 @@ public class Java_TranslationSchemaAnalysis {
         public Object value() {
             return null;
         }
+
+        @Override
+        public String toString() {
+            return "[" + type.name() + "]";
+        }
     }
 
     public static class ValueNode<V> extends ASTNode<V> {
         public final V value;
 
         public ValueNode(V value) {
-            super(null);
+            super(NodeType.VALUE_NODE);
             this.value = value;
         }
 
@@ -415,6 +419,11 @@ public class Java_TranslationSchemaAnalysis {
         @Override
         public V value() {
             return value;
+        }
+
+        @Override
+        public String toString() {
+            return super.toString() + " " + value;
         }
     }
 
@@ -833,7 +842,7 @@ public class Java_TranslationSchemaAnalysis {
                 return declarations;
             }));
             productions.add(new Production("decls", Collections.singletonList(EPSILON),
-                nodes -> new Declarations(Collections.emptyList())));
+                nodes -> new Declarations(new ArrayList<>())));
             productions.add(new Production("decl", Arrays.asList("int", "ID", "=", "INTNUM"),
                 nodes -> new VariableDeclaration(Literal.LITERAL_INT, nodes.get(1), nodes.get(3))));
             productions.add(new Production("decl", Arrays.asList("real", "ID", "=", "REALNUM"),
@@ -856,7 +865,7 @@ public class Java_TranslationSchemaAnalysis {
                 return stmts;
             }));
             productions.add(new Production("stmts", Collections.singletonList(EPSILON),
-                nodes -> new Statements(Collections.emptyList())));
+                nodes -> new Statements(new ArrayList<>())));
             productions.add(
                 new Production("ifstmt", Arrays.asList("if", "(", "boolexpr", ")", "then", "stmt", "else", "stmt"),
                     nodes -> new IfStatement(nodes.get(2), nodes.get(5), nodes.get(7))));
@@ -897,11 +906,11 @@ public class Java_TranslationSchemaAnalysis {
             productions.add(new Production("multexprprime", Collections.singletonList(EPSILON),
                 nodes -> new BinaryExpression(0, null, null)));
             productions.add(new Production("simpleexpr", Collections.singletonList("ID"),
-                nodes -> new Identifier(nodes.get(0).value().toString())));
+                nodes -> nodes.get(0)));
             productions.add(new Production("simpleexpr", Collections.singletonList("INTNUM"),
-                nodes -> new Literal(Integer.parseInt(nodes.get(0).value().toString()), Literal.LITERAL_INT)));
+                nodes -> nodes.get(0)));
             productions.add(new Production("simpleexpr", Collections.singletonList("REALNUM"),
-                nodes -> new Literal(Double.parseDouble(nodes.get(0).value().toString()), Literal.LITERAL_REAL)));
+                nodes -> nodes.get(0)));
             productions.add(new Production("simpleexpr", Arrays.asList("(", "arithexpr", ")"), nodes -> {
                 return nodes.get(1);
             }));
@@ -911,13 +920,15 @@ public class Java_TranslationSchemaAnalysis {
             List<Production> result = new ArrayList<>();
             input.add(new Token(-1, $, $));
             Stack<Integer> stateStack = new Stack<>();
+            Stack<ASTNode<?>> nodeStack = new Stack<>();
             stateStack.push(0);
 
             int i = 0;
             boolean accepted = false;
             while (!accepted) {
+                Token token = input.get(i);
                 int state = stateStack.peek();
-                String symbol = input.get(i).symbol;
+                String symbol = token.symbol;
                 Integer item = table.get(state).get(symbol);
                 if (item == null) {
                     item = table.get(state).get(EPSILON);
@@ -928,6 +939,20 @@ public class Java_TranslationSchemaAnalysis {
                     int next = item % ACTION_BASE;
                     if (action == SHIFT) {
                         stateStack.push(next);
+                        switch (symbol) {
+                            case "ID":
+                                nodeStack.push(new Identifier(symbol));
+                                break;
+                            case "INTNUM":
+                                nodeStack.push(new Literal(Integer.parseInt(token.value), Literal.LITERAL_INT));
+                                break;
+                            case "REALNUM":
+                                nodeStack.push(new Literal(Double.parseDouble(token.value), Literal.LITERAL_REAL));
+                                break;
+                            default:
+                                nodeStack.push(new ValueNode<>(symbol));
+                                break;
+                        }
                         continue;
                     }
                 }
@@ -937,15 +962,35 @@ public class Java_TranslationSchemaAnalysis {
                     case SHIFT:
                         i++;
                         stateStack.push(next);
+                        switch (symbol) {
+                            case "ID":
+                                nodeStack.push(new Identifier(symbol));
+                                break;
+                            case "INTNUM":
+                                nodeStack.push(new Literal(Integer.parseInt(token.value), Literal.LITERAL_INT));
+                                break;
+                            case "REALNUM":
+                                nodeStack.push(new Literal(Double.parseDouble(token.value), Literal.LITERAL_REAL));
+                                break;
+                            default:
+                                nodeStack.push(new ValueNode<>(symbol));
+                                break;
+                        }
                         break;
                     case REDUCE:
                         Production reduceProd = productions.get(next);
+                        List<ASTNode<?>> nodes = new ArrayList<>(reduceProd.right.size());
                         for (int n = reduceProd.right.size(); n > 0; n--) {
                             stateStack.pop();
+                            if (nodeStack.empty()) {
+                                int sdad =  23;
+                            }
+                            nodes.add(0, nodeStack.pop());
                         }
                         int t = stateStack.peek();
                         int go = table.get(t).get(reduceProd.left);
                         stateStack.push(go % ACTION_BASE);
+                        nodeStack.push(reduceProd.mergeFunc.apply(nodes));
 
                         result.add(reduceProd);
                         break;
