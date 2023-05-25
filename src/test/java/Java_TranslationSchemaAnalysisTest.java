@@ -14,23 +14,27 @@ public class Java_TranslationSchemaAnalysisTest {
 
     @ParameterizedTest
     @ValueSource(ints = {1, 2, 3, 4})
-    public void test1(int i) throws IOException{
+    public void test1(int i) throws IOException {
         String input = Utils.readProg("trans/in" + i + ".txt").toString();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream out = new PrintStream(new BufferedOutputStream(baos), true);
         System.setOut(out);
+        ByteArrayOutputStream baos2 = new ByteArrayOutputStream();
+        PrintStream err = new PrintStream(new BufferedOutputStream(baos2), true);
+        System.setErr(err);
 
-        Java_TranslationSchemaAnalysis.LexAnalyser lexAnalyser = new Java_TranslationSchemaAnalysis.LexAnalyser(SYMBOL_DEFINITION);
+        Java_TranslationSchemaAnalysis.LexAnalyser lexAnalyser =
+            new Java_TranslationSchemaAnalysis.LexAnalyser(SYMBOL_DEFINITION);
         Java_TranslationSchemaAnalysis.LRAnalyser lrAnalyser = new Java_TranslationSchemaAnalysis.LRAnalyser();
         Java_TranslationSchemaAnalysis.AnalysisResult result = lrAnalyser.analysis(lexAnalyser.analysis(input));
         Java_TranslationSchemaAnalysis.Scope scope = new Java_TranslationSchemaAnalysis.Scope();
-        try {
-            result.root.execute(scope);
+        result.root.execute(scope);
+        if (baos2.size() == 0) {
             for (String s : new String[] {"a", "b", "c"}) {
                 System.out.println(s + ": " + scope.get(s).getValue());
             }
-        } catch (Exception e) {
-
+        } else {
+            System.out.println(baos2);
         }
 
         String actual = baos.toString();

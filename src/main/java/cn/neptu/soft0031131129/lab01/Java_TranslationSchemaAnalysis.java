@@ -1,7 +1,12 @@
 package cn.neptu.soft0031131129.lab01;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,9 +20,6 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static cn.neptu.soft0031131129.lab01.Java_TranslationSchemaAnalysis.Variable.TYPE_INT;
-import static cn.neptu.soft0031131129.lab01.Java_TranslationSchemaAnalysis.Variable.TYPE_REAL;
 
 public class Java_TranslationSchemaAnalysis {
 
@@ -540,14 +542,16 @@ public class Java_TranslationSchemaAnalysis {
                     return left.longValue() * right.longValue();
                 case BINARY_OP_DIV:
                     if (right.doubleValue() == 0) {
-                        throw new IllegalArgumentException(String.format("error message:line %d,%s\n", getLine(), "division by zero"));
+                        throw new IllegalArgumentException(
+                            String.format("error message:line %d,%s\n", getLine(), "division by zero"));
                     }
                     if (hasDouble || hasFloat)
                         return left.doubleValue() / right.doubleValue();
                     return left.longValue() / right.longValue();
                 case BINARY_OP_MOD:
                     if (right.doubleValue() == 0) {
-                        throw new IllegalArgumentException(String.format("error message:line %d,%s\n", getLine(), "division by zero"));
+                        throw new IllegalArgumentException(
+                            String.format("error message:line %d,%s\n", getLine(), "division by zero"));
                     }
                     if (hasDouble || hasFloat)
                         return left.doubleValue() % right.doubleValue();
@@ -654,7 +658,7 @@ public class Java_TranslationSchemaAnalysis {
                 try {
                     result = statement.execute(scope);
                 } catch (Exception e) {
-                    System.out.printf(e.getMessage());
+                    System.err.println(e.getMessage());
                 }
             }
             return result;
@@ -707,7 +711,9 @@ public class Java_TranslationSchemaAnalysis {
                     }
                     if (result instanceof Double || result instanceof Float) {
                         variable.setValue(((Number)result).intValue());
-                        System.out.printf("error message:line %d,%s\n", getLine(), "realnum can not be translated into int type");;
+                        System.err.printf("error message:line %d,%s\n", getLine(),
+                            "realnum can not be translated into int type");
+                        ;
                     }
                     break;
                 case Variable.TYPE_REAL:
@@ -737,7 +743,7 @@ public class Java_TranslationSchemaAnalysis {
                 try {
                     result = declaration.execute(scope);
                 } catch (Exception e) {
-                    System.out.println(e.getMessage());
+                    System.err.println(e.getMessage());
                 }
             }
             return result;
@@ -978,13 +984,13 @@ public class Java_TranslationSchemaAnalysis {
             productions.add(new Production("decls", Collections.singletonList(EPSILON),
                 nodes -> new Declarations(new ArrayList<>())));
             productions.add(new Production("decl", Arrays.asList("int", "ID", "=", "INTNUM"),
-                nodes -> new VariableDeclaration(TYPE_INT, nodes.get(1), nodes.get(3))));
+                nodes -> new VariableDeclaration(Variable.TYPE_INT, nodes.get(1), nodes.get(3))));
             productions.add(new Production("decl", Arrays.asList("real", "ID", "=", "REALNUM"),
-                nodes -> new VariableDeclaration(TYPE_REAL, nodes.get(1), nodes.get(3))));
+                nodes -> new VariableDeclaration(Variable.TYPE_REAL, nodes.get(1), nodes.get(3))));
             productions.add(new Production("decl", Arrays.asList("int", "ID", "=", "REALNUM"),
-                nodes -> new VariableDeclaration(TYPE_INT, nodes.get(1), nodes.get(3))));
+                nodes -> new VariableDeclaration(Variable.TYPE_INT, nodes.get(1), nodes.get(3))));
             productions.add(new Production("decl", Arrays.asList("real", "ID", "=", "INTNUM"),
-                nodes -> new VariableDeclaration(TYPE_REAL, nodes.get(1), nodes.get(3))));
+                nodes -> new VariableDeclaration(Variable.TYPE_REAL, nodes.get(1), nodes.get(3))));
             productions.add(new Production("stmt", Collections.singletonList("ifstmt"), nodes -> nodes.get(0)));
             productions.add(new Production("stmt", Collections.singletonList("assgstmt"), nodes -> nodes.get(0)));
             productions.add(new Production("stmt", Collections.singletonList("compoundstmt"), nodes -> nodes.get(0)));
@@ -1021,13 +1027,13 @@ public class Java_TranslationSchemaAnalysis {
                 }
                 return new BinaryExpression(right.operator, nodes.get(0), right);
             }));
-            productions.add(new Production("arithexprprime", Arrays.asList("+", "multexpr", "arithexprprime"), nodes -> {
-                return new BinaryExpression(BinaryExpression.BINARY_OP_ADD, nodes.get(1), nodes.get(2));
-            }));
+            productions.add(
+                new Production("arithexprprime", Arrays.asList("+", "multexpr", "arithexprprime"), nodes -> {
+                    return new BinaryExpression(BinaryExpression.BINARY_OP_ADD, nodes.get(1), nodes.get(2));
+                }));
             productions.add(new Production("arithexprprime", Arrays.asList("-", "multexpr", "arithexprprime"),
                 nodes -> new BinaryExpression(BinaryExpression.BINARY_OP_SUB, nodes.get(1), nodes.get(2))));
-            productions.add(new Production("arithexprprime", Collections.singletonList(EPSILON),
-                nodes -> null));
+            productions.add(new Production("arithexprprime", Collections.singletonList(EPSILON), nodes -> null));
             productions.add(new Production("multexpr", Arrays.asList("simpleexpr", "multexprprime"), nodes -> {
                 BinaryExpression right = (BinaryExpression)nodes.get(1);
                 if (right == null) {
@@ -1043,8 +1049,7 @@ public class Java_TranslationSchemaAnalysis {
                 new Production("multexprprime", Arrays.asList("/", "simpleexpr", "multexprprime"), nodes -> {
                     return new BinaryExpression(BinaryExpression.BINARY_OP_DIV, nodes.get(1), nodes.get(2));
                 }));
-            productions.add(new Production("multexprprime", Collections.singletonList(EPSILON),
-                nodes -> null));
+            productions.add(new Production("multexprprime", Collections.singletonList(EPSILON), nodes -> null));
             productions.add(new Production("simpleexpr", Collections.singletonList("ID"), nodes -> nodes.get(0)));
             productions.add(new Production("simpleexpr", Collections.singletonList("INTNUM"), nodes -> nodes.get(0)));
             productions.add(new Production("simpleexpr", Collections.singletonList("REALNUM"), nodes -> nodes.get(0)));
@@ -1061,10 +1066,10 @@ public class Java_TranslationSchemaAnalysis {
                     result = new Identifier(token.value);
                     break;
                 case "INTNUM":
-                    result = new Literal(Integer.parseInt(token.value), TYPE_INT);
+                    result = new Literal(Integer.parseInt(token.value), Variable.TYPE_INT);
                     break;
                 case "REALNUM":
-                    result = new Literal(Double.parseDouble(token.value), TYPE_REAL);
+                    result = new Literal(Double.parseDouble(token.value), Variable.TYPE_REAL);
                     break;
                 default:
                     result = new ValueNode<>(symbol);
@@ -1123,7 +1128,7 @@ public class Java_TranslationSchemaAnalysis {
                         int go = table.get(t).get(reduceProd.left);
                         stateStack.push(go % ACTION_BASE);
                         ASTNode<?> newNode = reduceProd.mergeFunc.apply(nodes);
-                        if (newNode != null){
+                        if (newNode != null) {
                             newNode.setLine(token.line);
                         }
                         nodeStack.push(newNode);
@@ -1203,6 +1208,7 @@ public class Java_TranslationSchemaAnalysis {
         public void setValue(Object value) {
             this.value = value;
         }
+
         public Object getValue() {
             return value;
         }
@@ -1222,9 +1228,10 @@ public class Java_TranslationSchemaAnalysis {
 
         private final Scope parent;
 
-        public Scope(){
+        public Scope() {
             this(null);
         }
+
         public Scope(Scope parent) {
             this.parent = parent;
         }
@@ -1243,6 +1250,33 @@ public class Java_TranslationSchemaAnalysis {
     }
 
     public static void main(String[] args) {
+        StringBuilder sb = new StringBuilder();
+        Reader in = new InputStreamReader(System.in);
+        try (BufferedReader reader = new BufferedReader(in)) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append('\n');
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
+        ByteArrayOutputStream baos2 = new ByteArrayOutputStream();
+        PrintStream err = new PrintStream(new BufferedOutputStream(baos2), true);
+        System.setErr(err);
+
+        Java_TranslationSchemaAnalysis.LexAnalyser lexAnalyser =
+            new Java_TranslationSchemaAnalysis.LexAnalyser(SYMBOL_DEFINITION);
+        Java_TranslationSchemaAnalysis.LRAnalyser lrAnalyser = new Java_TranslationSchemaAnalysis.LRAnalyser();
+        Java_TranslationSchemaAnalysis.AnalysisResult result = lrAnalyser.analysis(lexAnalyser.analysis(sb.toString()));
+        Java_TranslationSchemaAnalysis.Scope scope = new Java_TranslationSchemaAnalysis.Scope();
+        result.root.execute(scope);
+        if (baos2.size() == 0) {
+            for (String s : new String[] {"a", "b", "c"}) {
+                System.out.println(s + ": " + scope.get(s).getValue());
+            }
+        } else {
+            System.out.println(baos2);
+        }
     }
 }
