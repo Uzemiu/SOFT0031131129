@@ -1,8 +1,13 @@
 package cn.neptu.soft0031131129.lab01;
 
-import java.io.*;
-import java.nio.Buffer;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Java_LexAnalysis {
     private static StringBuffer prog = new StringBuffer();
@@ -64,11 +69,11 @@ public class Java_LexAnalysis {
 
     public static class Analyser {
 
-        private StringBuffer prog;
+        private final String prog;
         private int i;
 
         public Analyser(StringBuffer prog) {
-            this.prog = prog;
+            this.prog = prog.toString();
             this.i = 0;
         }
 
