@@ -1117,9 +1117,6 @@ public class Java_TranslationSchemaAnalysis {
                         List<ASTNode<?>> nodes = new ArrayList<>(reduceProd.right.size());
                         for (int n = reduceProd.right.size(); n > 0; n--) {
                             stateStack.pop();
-                            if (nodeStack.empty()) {
-                                int sdad = 23;
-                            }
                             nodes.add(0, nodeStack.pop());
                         }
                         int t = stateStack.peek();
