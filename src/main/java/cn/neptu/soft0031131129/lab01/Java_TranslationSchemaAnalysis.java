@@ -388,7 +388,7 @@ public class Java_TranslationSchemaAnalysis {
         VALUE_NODE,
     }
 
-    public static class ASTNode<V> {
+    public abstract static class ASTNode<V> {
         public final NodeType type;
         private int line;
 
@@ -396,9 +396,7 @@ public class Java_TranslationSchemaAnalysis {
             this.type = type;
         }
 
-        public V execute(Scope scope) {
-            return null;
-        }
+        public abstract V execute(Scope scope);
 
         public Object value() {
             return null;
